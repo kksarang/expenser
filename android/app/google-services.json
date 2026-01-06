@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "726175851822",
+    "project_id": "expenser-bc977",
+    "storage_bucket": "expenser-bc977.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:726175851822:android:828fee2246715441ac46bf",
+        "android_client_info": {
+          "package_name": "com.kksystems.expenser"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "726175851822-51q18meie4fajp57pn1cqklhq4er3jue.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kksystems.expenser",
+            "certificate_hash": "9136eaab35b915f08a1b916df05c1c044efeba78"
+          }
+        },
+        {
+          "client_id": "726175851822-qj0ql91e27iiftou79dlmiqe8g5a6mvq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kksystems.expenser",
+            "certificate_hash": "95810d10dd73fed5817b3dd0b331499d0c13b85f"
+          }
+        },
+        {
+          "client_id": "726175851822-2fa981ddedbr4os2f3of9tciub86avf5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwKFeqcmrN6v9KJRbPHmlPB68-Y7vsTBA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "726175851822-2fa981ddedbr4os2f3of9tciub86avf5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "726175851822-ldkff64ll4baq0nfsupi9f2b87nkj4qq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kksystems.expenser"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
