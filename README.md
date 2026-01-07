@@ -19,3 +19,9 @@ A modern, cross-platform expense tracking application built with Flutter.
 ```bash
 flutter pub get
 flutter run
+
+
+
+flutter build apk --no-tree-shake-icons
+
+flutter build appbundle --no-tree-shake-icons
