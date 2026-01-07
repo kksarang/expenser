@@ -25,3 +25,7 @@ flutter run
 flutter build apk --no-tree-shake-icons
 
 flutter build appbundle --no-tree-shake-icons
+
+Run flutter build appbundle.
+Verify the command completes successfully.
+Check for the existence of the .aab file in build/app/outputs/bundle/release/.
