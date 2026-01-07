@@ -83,14 +83,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 33),
 
               // Statistics Section with Timeframe Selector
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Statistics',
+                    'Statistics ',
                     style: TextStyle(
                       fontSize: Responsive.fontSize(context, 20),
                       fontWeight: FontWeight.bold,
