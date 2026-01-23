@@ -78,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        _showErrorSnackbar(context, 'Google Login Failed. Please try again.');
+        _showErrorSnackbar(context, 'Google Login Failed: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
