@@ -14,10 +14,7 @@ class AnalyticsPreviewChart extends StatelessWidget {
           children: [
             const Text(
               'Analytics',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -29,19 +26,20 @@ class AnalyticsPreviewChart extends StatelessWidget {
                 children: [
                   Text(
                     'Year - 2022',
-                    style: TextStyle(
-                      color: AppColors.lightGrey,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: AppColors.lightGrey, fontSize: 11),
                   ),
                   SizedBox(width: 4),
-                  Icon(Icons.keyboard_arrow_down, color: AppColors.lightGrey, size: 16),
+                  Icon(
+                    Icons.keyboard_arrow_down,
+                    color: AppColors.lightGrey,
+                    size: 16,
+                  ),
                 ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 22),
         SizedBox(
           height: 180,
           child: BarChart(
@@ -58,11 +56,13 @@ class AnalyticsPreviewChart extends StatelessWidget {
                       const titles = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
                       if (value.toInt() < titles.length) {
                         return Padding(
-                           padding: const EdgeInsets.only(top: 8),
-                           child: Text(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
                             titles[value.toInt()],
                             style: TextStyle(
-                              color: value == 3 ? AppColors.primary : AppColors.lightGrey, // Apr is selected
+                              color: value == 3
+                                  ? AppColors.primary
+                                  : AppColors.lightGrey, // Apr is selected
                               fontSize: 12,
                             ),
                           ),
@@ -73,9 +73,15 @@ class AnalyticsPreviewChart extends StatelessWidget {
                     reservedSize: 30,
                   ),
                 ),
-                leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                leftTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
               ),
               gridData: const FlGridData(show: false),
               borderData: FlBorderData(show: false),
