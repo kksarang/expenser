@@ -26,7 +26,7 @@ class AnalyticsPreviewChart extends StatelessWidget {
                 children: [
                   Text(
                     'Year - 2022',
-                    style: TextStyle(color: AppColors.lightGrey, fontSize: 11),
+                    style: TextStyle(color: AppColors.lightGrey, fontSize: 12),
                   ),
                   SizedBox(width: 4),
                   Icon(
@@ -39,7 +39,7 @@ class AnalyticsPreviewChart extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 20),
         SizedBox(
           height: 180,
           child: BarChart(
