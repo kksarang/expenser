@@ -62,7 +62,7 @@ class AnalyticsPreviewChart extends StatelessWidget {
                             style: TextStyle(
                               color: value == 3
                                   ? AppColors.primary
-                                  : AppColors.lightGrey, // Apr is selected
+                                  : AppColors.lightGrey,
                               fontSize: 12,
                             ),
                           ),
@@ -107,12 +107,12 @@ class AnalyticsPreviewChart extends StatelessWidget {
         BarChartRodData(
           toY: y,
           color: isSelected ? AppColors.primary : const Color(0xFFEEE5FF),
-          width: 24, // Wider bars
+          width: 24,
           borderRadius: BorderRadius.circular(6),
           backDrawRodData: BackgroundBarChartRodData(
             show: true,
-            toY: 20, // Max height background
-            color: Colors.transparent, // Or a very light grey
+            toY: 20,
+            color: Colors.transparent,
           ),
         ),
       ],
