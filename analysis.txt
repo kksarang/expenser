@@ -1,0 +1,70 @@
+Analyzing expense_tracker...                                    
+
+   info • Don't invoke 'print' in production code • lib/core/services/auth_service.dart:60:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/auth_service.dart:73:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/auth_service.dart:80:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/auth_service.dart:100:7 • avoid_print
+warning • Unused import: '../constants/app_colors.dart' • lib/core/services/firestore_service.dart:2:8 • unused_import
+warning • Unused import: 'package:flutter/material.dart' • lib/core/services/firestore_service.dart:6:8 • unused_import
+   info • 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre • lib/core/theme/app_theme.dart:12:7 • deprecated_member_use
+   info • 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre • lib/core/theme/app_theme.dart:62:7 • deprecated_member_use
+   info • 'dialogBackgroundColor' is deprecated and shouldn't be used. Use DialogThemeData.backgroundColor instead. This feature was deprecated after v3.27.0-0.1.pre • lib/core/theme/app_theme.dart:87:5 • deprecated_member_use
+warning • Unused import: 'package:flutter/material.dart' • lib/domain/entities/category_entity.dart:1:8 • unused_import
+   info • Don't invoke 'print' in production code • lib/main.dart:33:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/presentation/providers/category_provider.dart:111:15 • avoid_print
+   info • Don't invoke 'print' in production code • lib/presentation/providers/transaction_provider.dart:60:21 • avoid_print
+   info • Don't invoke 'print' in production code • lib/presentation/providers/transaction_provider.dart:74:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/presentation/providers/transaction_provider.dart:112:9 • avoid_print
+   info • Statements in an if should be enclosed in a block • lib/presentation/providers/transaction_provider.dart:189:15 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/presentation/providers/transaction_provider.dart:191:15 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/presentation/providers/transaction_provider.dart:209:11 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/presentation/providers/transaction_provider.dart:211:11 • curly_braces_in_flow_control_structures
+   info • Don't invoke 'print' in production code • lib/presentation/providers/user_provider.dart:38:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/presentation/providers/user_provider.dart:61:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/presentation/providers/user_provider.dart:65:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/presentation/providers/user_provider.dart:67:5 • avoid_print
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/add_transaction_screen.dart:140:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/add_transaction_screen.dart:187:41 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/presentation/screens/add_transaction_screen.dart:474:39 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/add_transaction_screen.dart:478:68 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/presentation/screens/add_transaction_screen.dart:528:31 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/presentation/screens/add_transaction_screen.dart:581:31 • curly_braces_in_flow_control_structures
+   info • Don't use 'BuildContext's across async gaps • lib/presentation/screens/add_transaction_screen.dart:724:9 • use_build_context_synchronously
+   info • Statements in an if should be enclosed in a block • lib/presentation/screens/add_transaction_screen.dart:748:9 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/analytics_screen.dart:246:31 • deprecated_member_use
+   info • The private field _calendarFormat could be 'final' • lib/presentation/screens/calendar_screen.dart:24:18 • prefer_final_fields
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/calendar_screen.dart:130:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/calendar_screen.dart:228:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/category_management_screen.dart:51:53 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use component accessors like .r or .g, or toARGB32 for an explicit conversion • lib/presentation/screens/category_management_screen.dart:161:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/category_management_screen.dart:189:56 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/presentation/screens/home_screen.dart:199:31 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/presentation/screens/home_screen.dart:237:31 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/home_screen.dart:362:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/home_screen.dart:475:28 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/presentation/screens/login_screen.dart:193:27 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/presentation/screens/login_screen.dart:242:27 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/login_screen.dart:304:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/main_screen.dart:188:24 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/onboarding_screen.dart:112:40 • deprecated_member_use
+warning • The value of the local variable 'isDark' isn't used • lib/presentation/screens/profile_screen.dart:23:11 • unused_local_variable
+   info • Don't use 'BuildContext's across async gaps • lib/presentation/screens/profile_screen.dart:329:17 • use_build_context_synchronously
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/profile_screen.dart:435:34 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/profile_screen.dart:442:30 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/profile_screen.dart:443:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/profile_screen.dart:452:30 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/screens/profile_screen.dart:453:37 • deprecated_member_use
+warning • Unused import: '../../core/constants/app_colors.dart' • lib/presentation/screens/splash_screen.dart:2:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/widgets/custom_dialog.dart:51:59 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/widgets/custom_snackbar.dart:89:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/presentation/widgets/icon_picker.dart:46:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/expenses_screen.dart:34:58 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/expenses_screen.dart:217:35 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/screens/expenses_screen.dart:225:50 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/analytics_preview_chart.dart:22:63 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/balance_card.dart:41:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/balance_card.dart:65:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/balance_card.dart:76:50 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/balance_card.dart:82:55 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/transaction_item.dart:29:62 • deprecated_member_use
+
