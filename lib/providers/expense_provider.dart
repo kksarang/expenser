@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/transaction.dart';
 
-
 class ExpenseProvider with ChangeNotifier {
   final List<Transaction> _transactions = [
     Transaction(
@@ -36,7 +35,7 @@ class ExpenseProvider with ChangeNotifier {
       category: 'Salary',
       type: TransactionType.income,
     ),
-     Transaction(
+    Transaction(
       id: 't5',
       title: 'Healthcare',
       amount: 219.00,
@@ -81,7 +80,7 @@ class ExpenseProvider with ChangeNotifier {
     _transactions.removeWhere((tx) => tx.id == id);
     notifyListeners();
   }
-  
+
   Map<String, double> get categoryBreakdown {
     Map<String, double> data = {};
     for (var tx in _transactions) {

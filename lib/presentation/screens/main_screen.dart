@@ -52,13 +52,13 @@ class _MainScreenState extends State<MainScreen> {
                 'Calendar',
                 1,
               ),
-              const SizedBox(width: 48), // Space for FAB
+              const SizedBox(width: 48),
               _buildNavItem(
                 Icons.pie_chart_rounded,
                 Icons.pie_chart_outline_rounded,
                 'Analytics',
                 2,
-              ), // Note: pie_chart_rounded might not exist, checking fallback
+              ),
               _buildNavItem(
                 Icons.person_rounded,
                 Icons.person_outline_rounded,
@@ -83,24 +83,21 @@ class _MainScreenState extends State<MainScreen> {
       onTap: () => setState(() => _currentIndex = index),
       borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 4,
-        ), // Reduced vertical padding
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               isSelected ? activeIcon : inactiveIcon,
               color: isSelected ? AppColors.primary : AppColors.grey,
-              size: 24, // Reduced icon size
+              size: 24,
             ),
-            const SizedBox(height: 2), // Reduced spacing
+            const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
                 color: isSelected ? AppColors.primary : AppColors.grey,
-                fontSize: 11, // Reduced font size
+                fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -193,11 +190,7 @@ class _MainScreenState extends State<MainScreen> {
             Container(
               padding: const EdgeInsets.all(16), // Increased from 12 to 16
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: 28,
-              ), // Increased icon size
+              child: Icon(icon, color: Colors.white, size: 28),
             ),
             const SizedBox(height: 16),
             Text(
@@ -207,7 +200,7 @@ class _MainScreenState extends State<MainScreen> {
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
-            ), // Increased font size
+            ),
           ],
         ),
       ),
