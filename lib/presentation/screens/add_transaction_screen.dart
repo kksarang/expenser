@@ -321,9 +321,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               ),
             ),
 
-            // SizedBox(height: responsiveHeight * 0.01),
-
-            // SizedBox(height: responsiveHeight * 0.01),
             SizedBox(height: responsiveHeight * 0.01),
 
             Expanded(
