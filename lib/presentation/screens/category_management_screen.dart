@@ -37,7 +37,6 @@ class CategoryManagementScreen extends StatelessWidget {
         itemCount: provider.categories.length,
         itemBuilder: (context, index) {
           final category = provider.categories[index];
-          // Check if it's a default category (ID 1-4) to disable deletion
           return Container(
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
@@ -129,11 +128,7 @@ class CategoryManagementScreen extends StatelessWidget {
     TransactionType selectedType = isEditing
         ? category.type
         : TransactionType.expense;
-    int selectedIconCode = isEditing
-        ? category.iconCodePoint
-        : 0xe57a; // Default to first icon
-
-    // Auto-select type color if adding new
+    int selectedIconCode = isEditing ? category.iconCodePoint : 0xe57a;
     Color getColorForType(TransactionType type) {
       return type == TransactionType.expense
           ? const Color(0xFFFD3C4A)

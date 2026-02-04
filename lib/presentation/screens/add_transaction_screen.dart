@@ -228,7 +228,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         ),
         child: Column(
           children: [
-            // Custom App Bar
             SafeArea(
               child: Padding(
                 padding: EdgeInsets.symmetric(
@@ -324,7 +323,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
             SizedBox(height: responsiveHeight * 0.01),
 
-            // White Sheet (Flexible & Scrollable)
             Expanded(
               flex: 5,
               child: Container(
