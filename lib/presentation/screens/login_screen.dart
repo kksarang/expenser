@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/user_provider.dart';
-// import '../widgets/custom_button.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -63,7 +62,6 @@ class _LoginScreenState extends State<LoginScreen> {
         listen: false,
       ).loginWithGoogle();
 
-      // If credential is null, user cancelled. Stop here.
       if (credential == null) {
         if (mounted) setState(() => _isLoading = false);
         return;
@@ -244,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     SizedBox(height: responsiveHeight * 0.04),
-                    // Login Button
+
                     ElevatedButton(
                       onPressed: _isLoading ? null : _login,
                       style: ElevatedButton.styleFrom(
