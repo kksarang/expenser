@@ -27,7 +27,7 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
-          'Tracker',
+          'Expenser',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,

@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Tracker',
+                    'Expenser',
                     style: TextStyle(
                       fontSize: Responsive.fontSize(context, 18),
                       fontWeight: FontWeight.bold,
