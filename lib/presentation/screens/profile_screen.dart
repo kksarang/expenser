@@ -9,7 +9,10 @@ import '../providers/transaction_provider.dart';
 import '../providers/category_provider.dart';
 import '../../core/services/firestore_service.dart';
 import '../../core/utils/globals.dart'; // Import for global key
+import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:image_picker/image_picker.dart';
 import 'login_screen.dart';
 import '../../core/services/local_storage_service.dart';
 
@@ -44,27 +47,45 @@ class ProfileScreen extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.primary, width: 2),
-                      color: Theme.of(context).cardColor,
-                      image: user?.photoURL != null
-                          ? DecorationImage(
-                              image: NetworkImage(user!.photoURL!),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
-                    ),
-                    child: user?.photoURL == null
-                        ? const Icon(
-                            Icons.person,
-                            size: 50,
+                  GestureDetector(
+                    onTap: () => _pickImage(context, userProvider),
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.primary,
+                              width: 2,
+                            ),
+                            color: Theme.of(context).cardColor,
+                            image: _getProfileImage(userProvider),
+                          ),
+                          child: _getProfileImage(userProvider) == null
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: AppColors.primary,
+                                )
+                              : null,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
                             color: AppColors.primary,
-                          )
-                        : null,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -152,6 +173,28 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
 
+            // Invite Friend
+            _ProfileMenuTile(
+              icon: Icons.person_add_alt_1_outlined,
+              title: 'Invite Friend',
+              onTap: () async {
+                final String appLink =
+                    'https://play.google.com/store/apps/details?id=com.kksystems.expenser';
+                final String text =
+                    'Hey! Track your daily expenses and take control of your finances with Expenser. Download it here: $appLink';
+
+                // Get the box to place the share dialog properly on iPad/tablets
+                final box = context.findRenderObject() as RenderBox?;
+
+                await Share.share(
+                  text,
+                  subject: 'Check out Expenser App!',
+                  sharePositionOrigin:
+                      box!.localToGlobal(Offset.zero) & box.size,
+                );
+              },
+            ),
+
             // Privacy Policy
             _ProfileMenuTile(
               icon: Icons.privacy_tip_outlined,
@@ -203,6 +246,44 @@ class ProfileScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  DecorationImage? _getProfileImage(UserProvider provider) {
+    if (provider.customPhotoBase64 != null) {
+      return DecorationImage(
+        image: MemoryImage(base64Decode(provider.customPhotoBase64!)),
+        fit: BoxFit.cover,
+      );
+    } else if (provider.photoUrl != null) {
+      return DecorationImage(
+        image: NetworkImage(provider.photoUrl!),
+        fit: BoxFit.cover,
+      );
+    }
+    return null;
+  }
+
+  Future<void> _pickImage(BuildContext context, UserProvider provider) async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 400,
+        maxHeight: 400,
+        imageQuality: 70,
+      );
+      if (image != null) {
+        final bytes = await image.readAsBytes();
+        final base64String = base64Encode(bytes);
+        await provider.updateProfilePhoto(base64String);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to pick an image')),
+        );
+      }
+    }
   }
 
   void _showEditProfileDialog(BuildContext context, UserProvider provider) {

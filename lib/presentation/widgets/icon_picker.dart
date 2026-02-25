@@ -27,6 +27,8 @@ class IconPicker extends StatelessWidget {
       height: 200,
       child: GridView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8),
+        shrinkWrap: true,
+        physics: const BouncingScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: crossAxisCount,
           mainAxisSpacing: 12,

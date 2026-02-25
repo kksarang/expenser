@@ -9,6 +9,7 @@ class UserProvider with ChangeNotifier {
   User? _user;
   String _name = 'My Name';
   String _bio = 'Tap to add bio';
+  String? _customPhotoBase64;
 
   User? get user => _user;
   bool get isGuest => _isGuest;
@@ -17,6 +18,7 @@ class UserProvider with ChangeNotifier {
   String get name => _user?.displayName ?? _name;
   String get bio => _bio;
   String? get photoUrl => _user?.photoURL;
+  String? get customPhotoBase64 => _customPhotoBase64;
 
   UserProvider() {
     _init();
@@ -104,6 +106,7 @@ class UserProvider with ChangeNotifier {
           prefs.getString('userName') ?? (_isGuest ? "Guest User" : 'My Name');
     }
     _bio = prefs.getString('userBio') ?? 'Tap to add bio';
+    _customPhotoBase64 = prefs.getString('customPhotoBase64');
     notifyListeners();
   }
 
@@ -135,5 +138,12 @@ class UserProvider with ChangeNotifier {
   Future<void> updateProfile(String newName, String newBio) async {
     await updateName(newName);
     await updateBio(newBio);
+  }
+
+  Future<void> updateProfilePhoto(String base64String) async {
+    _customPhotoBase64 = base64String;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('customPhotoBase64', base64String);
+    notifyListeners();
   }
 }
