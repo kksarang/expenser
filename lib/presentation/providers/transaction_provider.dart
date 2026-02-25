@@ -119,6 +119,25 @@ class TransactionProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateTransaction(TransactionEntity transaction) async {
+    final user = _safeUser;
+    if (user != null) {
+      try {
+        await _firestoreService.saveTransaction(user.uid, transaction);
+      } catch (e) {
+        print("Firestore update failed: $e");
+        rethrow;
+      }
+    } else {
+      final index = _transactions.indexWhere((t) => t.id == transaction.id);
+      if (index != -1) {
+        _transactions[index] = transaction;
+        await _saveLocalTransactions();
+        notifyListeners();
+      }
+    }
+  }
+
   Future<void> deleteTransaction(String id) async {
     final user = _safeUser;
     if (user != null) {

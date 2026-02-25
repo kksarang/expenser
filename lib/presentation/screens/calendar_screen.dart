@@ -8,7 +8,7 @@ import '../../core/constants/app_colors.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/category_provider.dart';
 import '../../domain/entities/category_entity.dart';
-
+import '../utils/transaction_actions.dart';
 import '../../core/utils/responsive.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -277,17 +277,62 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       ),
                                   ],
                                 ),
-                                trailing: Text(
-                                  '${transaction.type == TransactionType.expense ? '-' : '+'} ₹${transaction.amount.toStringAsFixed(0)}',
-                                  style: GoogleFonts.inter(
-                                    color:
-                                        transaction.type ==
-                                            TransactionType.expense
-                                        ? AppColors.expense
-                                        : AppColors.income,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: Responsive.fontSize(context, 16),
-                                  ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${transaction.type == TransactionType.expense ? '-' : '+'} ₹${transaction.amount.toStringAsFixed(0)}',
+                                      style: GoogleFonts.inter(
+                                        color:
+                                            transaction.type ==
+                                                TransactionType.expense
+                                            ? AppColors.expense
+                                            : AppColors.income,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: Responsive.fontSize(context, 16),
+                                      ),
+                                    ),
+                                    PopupMenuButton<String>(
+                                      icon: Icon(
+                                        Icons.more_vert,
+                                        color: AppColors.grey,
+                                        size: 22,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      onSelected: (value) {
+                                        if (value == 'edit') {
+                                          navigateToEdit(context, transaction);
+                                        } else if (value == 'delete') {
+                                          confirmDeleteTransaction(
+                                            context,
+                                            transaction,
+                                          );
+                                        }
+                                      },
+                                      itemBuilder: (context) => [
+                                        const PopupMenuItem(
+                                          value: 'edit',
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.edit, size: 20),
+                                              SizedBox(width: 12),
+                                              Text('Edit'),
+                                            ],
+                                          ),
+                                        ),
+                                        const PopupMenuItem(
+                                          value: 'delete',
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.delete, size: 20, color: Colors.red),
+                                              SizedBox(width: 12),
+                                              Text('Delete', style: TextStyle(color: Colors.red)),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               );
                             },

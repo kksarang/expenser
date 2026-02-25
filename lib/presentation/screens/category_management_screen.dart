@@ -8,6 +8,7 @@ import '../../domain/entities/category_entity.dart';
 import '../../presentation/widgets/custom_dialog.dart';
 import '../../presentation/widgets/icon_picker.dart';
 import '../../core/utils/responsive.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class CategoryManagementScreen extends StatelessWidget {
   const CategoryManagementScreen({super.key});
@@ -125,23 +126,24 @@ class CategoryManagementScreen extends StatelessWidget {
     final nameController = TextEditingController(
       text: isEditing ? category.name : '',
     );
-    TransactionType selectedType = isEditing
-        ? category.type
-        : TransactionType.expense;
-    int selectedIconCode = isEditing ? category.iconCodePoint : 0xe57a;
     Color getColorForType(TransactionType type) {
       return type == TransactionType.expense
           ? const Color(0xFFFD3C4A)
           : const Color(0xFF00A86B);
     }
+    TransactionType selectedType = isEditing
+        ? category.type
+        : TransactionType.expense;
+    int selectedIconCode = isEditing ? category.iconCodePoint : 0xe57a;
+    Color selectedColor = isEditing
+        ? Color(category.colorValue)
+        : getColorForType(selectedType);
 
     showDialog(
       context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            final currentColor = getColorForType(selectedType);
-
             return CustomDialog(
               title: isEditing ? 'Edit Category' : 'New Category',
               icon: isEditing ? Icons.edit_rounded : Icons.category_rounded,
@@ -153,7 +155,7 @@ class CategoryManagementScreen extends StatelessWidget {
                   id: isEditing ? category.id : const Uuid().v4(),
                   name: nameController.text.trim(),
                   iconCodePoint: selectedIconCode,
-                  colorValue: currentColor.value,
+                  colorValue: selectedColor.value,
                   type: selectedType,
                   isCustom: true,
                 );
@@ -192,7 +194,7 @@ class CategoryManagementScreen extends StatelessWidget {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: currentColor),
+                          borderSide: BorderSide(color: selectedColor),
                         ),
                       ),
                       textCapitalization: TextCapitalization.words,
@@ -207,7 +209,12 @@ class CategoryManagementScreen extends StatelessWidget {
                           'Expense',
                           TransactionType.expense,
                           selectedType,
-                          (val) => setState(() => selectedType = val),
+                          (val) => setState(() {
+                                selectedType = val;
+                                if (!isEditing) {
+                                  selectedColor = getColorForType(val);
+                                }
+                              }),
                         ),
                         const SizedBox(width: 8),
                         _TypeChip(
@@ -222,6 +229,26 @@ class CategoryManagementScreen extends StatelessWidget {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
+                        "Select Color",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: Responsive.fontSize(context, 14),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    BlockPicker(
+                      pickerColor: selectedColor,
+                      onColorChanged: (color) {
+                        setState(() {
+                          selectedColor = color;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
                         "Select Icon",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -232,7 +259,7 @@ class CategoryManagementScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     IconPicker(
                       selectedIconCode: selectedIconCode,
-                      selectedColor: currentColor,
+                      selectedColor: selectedColor,
                       onIconSelected: (code) =>
                           setState(() => selectedIconCode = code),
                     ),

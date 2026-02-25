@@ -15,9 +15,11 @@ import '../../core/utils/responsive.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   final TransactionType initialType;
+  final TransactionEntity? initialTransaction;
   const AddTransactionScreen({
     super.key,
     this.initialType = TransactionType.expense,
+    this.initialTransaction,
   });
 
   @override
@@ -47,10 +49,37 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     'Wallet',
   ];
 
+  bool _initializedFromExisting = false;
+
   @override
   void initState() {
     super.initState();
-    _selectedType = widget.initialType;
+    _selectedType =
+        widget.initialTransaction?.type ?? widget.initialType;
+    if (widget.initialTransaction != null) {
+      final tx = widget.initialTransaction!;
+      _amountController.text = tx.amount.toStringAsFixed(0);
+      _noteController.text = tx.note ?? '';
+      _selectedDate = tx.date;
+      _selectedPaymentType = tx.paymentType;
+      _accountController.text = tx.account;
+      _payeeController.text = tx.payee ?? '';
+      _referenceController.text = tx.reference ?? '';
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initializedFromExisting && widget.initialTransaction != null) {
+      final categoryProvider = Provider.of<CategoryProvider>(
+        context,
+        listen: false,
+      );
+      _selectedCategory = categoryProvider
+          .getCategoryById(widget.initialTransaction!.categoryId);
+      _initializedFromExisting = true;
+    }
   }
 
   @override
@@ -672,6 +701,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   void _saveTransaction() async {
+    final isEditing = widget.initialTransaction != null;
     final amountText = _amountController.text.trim();
     if (amountText.isEmpty || _selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -696,7 +726,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     }
 
     final transaction = TransactionEntity(
-      id: const Uuid().v4(),
+      id: isEditing ? widget.initialTransaction!.id : const Uuid().v4(),
       amount: amount,
       categoryId: _selectedCategory!.id,
       date: _selectedDate,
@@ -715,13 +745,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       final connectivityResult = await Connectivity().checkConnectivity();
       final isOffline = connectivityResult.contains(ConnectivityResult.none);
 
-      // Perform the save (don't await if offline to prevent blocking?
-      // Actually, with persistence, await should be fine, but we give immediate feedback)
-      // We await it to ensure no validation errors, but we trust persistence.
-      await Provider.of<TransactionProvider>(
+      final transactionProvider = Provider.of<TransactionProvider>(
         context,
         listen: false,
-      ).addTransaction(transaction);
+      );
+
+      if (isEditing) {
+        await transactionProvider.updateTransaction(transaction);
+      } else {
+        await transactionProvider.addTransaction(transaction);
+      }
 
       if (mounted) {
         Navigator.pop(context);

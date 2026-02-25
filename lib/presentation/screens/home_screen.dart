@@ -5,10 +5,12 @@ import '../providers/transaction_provider.dart';
 import '../providers/category_provider.dart';
 
 import '../../domain/entities/category_entity.dart';
+import '../utils/transaction_actions.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import '../../core/utils/responsive.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -352,44 +354,160 @@ class _HomeScreenState extends State<HomeScreen> {
                           context,
                         ).getCategoryById(transaction.categoryId);
 
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Color(
-                                category?.colorValue ?? 0xFFEEE5FF,
-                              ).withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(16),
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Slidable(
+                            key: ValueKey(transaction.id),
+                            startActionPane: ActionPane(
+                              motion: const StretchMotion(),
+                              children: [
+                                SlidableAction(
+                                  onPressed: (_) =>
+                                      navigateToEdit(context, transaction),
+                                  backgroundColor: AppColors.income,
+                                  foregroundColor: Colors.white,
+                                  icon: Icons.edit,
+                                  label: 'Edit',
+                                ),
+                              ],
                             ),
-                            child: Icon(
-                              IconData(
-                                category?.iconCodePoint ?? 0xe59c,
-                                fontFamily: 'MaterialIcons',
+                            endActionPane: ActionPane(
+                              motion: const StretchMotion(),
+                              children: [
+                                SlidableAction(
+                                  onPressed: (_) => confirmDeleteTransaction(
+                                    context,
+                                    transaction,
+                                  ),
+                                  backgroundColor: AppColors.expense,
+                                  foregroundColor: Colors.white,
+                                  icon: Icons.delete,
+                                  label: 'Delete',
+                                ),
+                              ],
+                            ),
+                            child: _AnimatedTransactionCard(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  leading: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Color(
+                                        category?.colorValue ?? 0xFFEEE5FF,
+                                      ).withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Icon(
+                                      IconData(
+                                        category?.iconCodePoint ?? 0xe59c,
+                                        fontFamily: 'MaterialIcons',
+                                      ),
+                                      color: Color(
+                                        category?.colorValue ?? 0xFF000000,
+                                      ),
+                                      size: Responsive.fontSize(context, 24),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    category?.name ?? 'Unknown',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: Responsive.fontSize(
+                                        context,
+                                        16,
+                                      ),
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    DateFormat(
+                                      'dd MMM yyyy',
+                                    ).format(transaction.date),
+                                    style: const TextStyle(
+                                      color: AppColors.grey,
+                                    ),
+                                  ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '${transaction.type == TransactionType.expense ? '-' : '+'} ₹${transaction.amount.toStringAsFixed(0)}',
+                                        style: TextStyle(
+                                          color:
+                                              transaction.type ==
+                                                  TransactionType.expense
+                                              ? AppColors.expense
+                                              : AppColors.income,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: Responsive.fontSize(
+                                            context,
+                                            16,
+                                          ),
+                                        ),
+                                      ),
+                                      PopupMenuButton<String>(
+                                        icon: Icon(
+                                          Icons.more_vert,
+                                          color: AppColors.grey,
+                                          size: 22,
+                                        ),
+                                        padding: EdgeInsets.zero,
+                                        onSelected: (value) {
+                                          if (value == 'edit') {
+                                            navigateToEdit(
+                                              context,
+                                              transaction,
+                                            );
+                                          } else if (value == 'delete') {
+                                            confirmDeleteTransaction(
+                                              context,
+                                              transaction,
+                                            );
+                                          }
+                                        },
+                                        itemBuilder: (context) => [
+                                          const PopupMenuItem(
+                                            value: 'edit',
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.edit, size: 20),
+                                                SizedBox(width: 12),
+                                                Text('Edit'),
+                                              ],
+                                            ),
+                                          ),
+                                          const PopupMenuItem(
+                                            value: 'delete',
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.delete,
+                                                  size: 20,
+                                                  color: Colors.red,
+                                                ),
+                                                SizedBox(width: 12),
+                                                Text(
+                                                  'Delete',
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                              color: Color(category?.colorValue ?? 0xFF000000),
-                              size: Responsive.fontSize(context, 24),
-                            ),
-                          ),
-                          title: Text(
-                            category?.name ?? 'Unknown',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: Responsive.fontSize(context, 16),
-                            ),
-                          ),
-                          subtitle: Text(
-                            DateFormat('dd MMM yyyy').format(transaction.date),
-                            style: const TextStyle(color: AppColors.grey),
-                          ),
-                          trailing: Text(
-                            '${transaction.type == TransactionType.expense ? '-' : '+'} ₹${transaction.amount.toStringAsFixed(0)}',
-                            style: TextStyle(
-                              color: transaction.type == TransactionType.expense
-                                  ? AppColors.expense
-                                  : AppColors.income,
-                              fontWeight: FontWeight.bold,
-                              fontSize: Responsive.fontSize(context, 16),
                             ),
                           ),
                         );
@@ -434,6 +552,55 @@ class _HomeScreenState extends State<HomeScreen> {
       barsSpace: _selectedTimeframe == Timeframe.month
           ? (isSmall ? 1 : 2)
           : (isSmall ? 2 : 4),
+    );
+  }
+}
+
+class _AnimatedTransactionCard extends StatefulWidget {
+  final Widget child;
+
+  const _AnimatedTransactionCard({required this.child});
+
+  @override
+  State<_AnimatedTransactionCard> createState() =>
+      _AnimatedTransactionCardState();
+}
+
+class _AnimatedTransactionCardState extends State<_AnimatedTransactionCard> {
+  bool _isPressed = false;
+
+  void _setPressed(bool value) {
+    if (_isPressed == value) return;
+    setState(() {
+      _isPressed = value;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _setPressed(true),
+      onTapUp: (_) => _setPressed(false),
+      onTapCancel: () => _setPressed(false),
+      behavior: HitTestBehavior.translucent,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        transform: Matrix4.identity()
+          ..translate(0.0, _isPressed ? 4.0 : 0.0)
+          ..scale(_isPressed ? 0.98 : 1.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: _isPressed ? 8 : 16,
+              offset: Offset(0, _isPressed ? 4 : 10),
+            ),
+          ],
+        ),
+        child: widget.child,
+      ),
     );
   }
 }
