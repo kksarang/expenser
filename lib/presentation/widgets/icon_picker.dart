@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_icons.dart';
 import '../../core/utils/responsive.dart';
 
@@ -42,19 +41,20 @@ class IconPicker extends StatelessWidget {
 
           return GestureDetector(
             onTap: () => onIconSelected(iconData.codePoint),
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? selectedColor.withOpacity(0.2)
-                    : Colors.transparent,
-                shape: BoxShape.circle,
+                    ? selectedColor.withOpacity(0.15)
+                    : const Color(0xFFF9F9F9),
+                borderRadius: BorderRadius.circular(12),
                 border: isSelected
                     ? Border.all(color: selectedColor, width: 2)
-                    : Border.all(color: AppColors.lightGrey),
+                    : Border.all(color: Colors.transparent),
               ),
               child: Icon(
                 iconData,
-                color: isSelected ? selectedColor : AppColors.grey,
+                color: isSelected ? selectedColor : Colors.grey.shade400,
                 size: Responsive.fontSize(context, 24),
               ),
             ),

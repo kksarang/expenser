@@ -222,6 +222,13 @@ class ProfileScreen extends StatelessWidget {
               },
             ),
 
+            // Rate this App
+            _ProfileMenuTile(
+              icon: Icons.star_outline_rounded,
+              title: 'Rate this App',
+              onTap: () => _showRatingConfirmation(context),
+            ),
+
             //    const SizedBox(height: 10),
 
             // Logout (Only for Authenticated Users)
@@ -242,6 +249,54 @@ class ProfileScreen extends StatelessWidget {
                 onTap: () =>
                     _showDeleteAccountConfirmation(context, userProvider),
               ),
+
+            const SizedBox(height: 8),
+
+            // Footer
+            Center(
+              child: InkWell(
+                onTap: () async {
+                  final Uri url = Uri.parse('https://sarangrajan.in/kksystems');
+                  if (!await launchUrl(
+                    url,
+                    mode: LaunchMode.externalApplication,
+                  )) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Could not open link')),
+                      );
+                    }
+                  }
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.bolt_rounded,
+                        size: 16,
+                        color: const Color.fromARGB(255, 95, 28, 0),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Powered by kksystems',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: const Color.fromARGB(255, 95, 28, 0),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 34),
           ],
         ),
       ),
@@ -452,6 +507,37 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 );
               }
+            }
+          }
+        },
+      ),
+    );
+  }
+
+  void _showRatingConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => CustomDialog(
+        title: 'Enjoying the app?',
+        description: 'Please take a moment to rate us on the Play Store.',
+        icon: Icons.rate_review_rounded,
+        primaryButtonText: 'Rate Now',
+        secondaryButtonText: 'Later',
+        onPrimaryPressed: () async {
+          Navigator.pop(context);
+          final String packageName = "com.kksystems.expenser";
+          final Uri url = Uri.parse(
+            'https://play.google.com/store/apps/details?id=$packageName',
+          );
+          try {
+            if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+              throw Exception('Could not launch $url');
+            }
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Could not open Play Store')),
+              );
             }
           }
         },
