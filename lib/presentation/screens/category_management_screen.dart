@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
 import '../../core/constants/app_colors.dart';
 import '../providers/category_provider.dart';
 import '../../domain/entities/category_entity.dart';
 
 import '../../presentation/widgets/custom_dialog.dart';
-import '../../presentation/widgets/icon_picker.dart';
 import '../../core/utils/responsive.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import '../widgets/add_category_sheet.dart';
 
 class CategoryManagementScreen extends StatelessWidget {
   const CategoryManagementScreen({super.key});
@@ -74,7 +72,7 @@ class CategoryManagementScreen extends StatelessWidget {
                       size: Responsive.fontSize(context, 24),
                     ),
                     onPressed: () =>
-                        _showAddEditDialog(context, category: category),
+                        _showAddEditSheet(context, category: category),
                   ),
                   IconButton(
                     icon: Icon(
@@ -92,7 +90,7 @@ class CategoryManagementScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddEditDialog(context),
+        onPressed: () => _showAddEditSheet(context),
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -121,187 +119,12 @@ class CategoryManagementScreen extends StatelessWidget {
     );
   }
 
-  void _showAddEditDialog(BuildContext context, {CategoryEntity? category}) {
-    final isEditing = category != null;
-    final nameController = TextEditingController(
-      text: isEditing ? category.name : '',
-    );
-    Color getColorForType(TransactionType type) {
-      return type == TransactionType.expense
-          ? const Color(0xFFFD3C4A)
-          : const Color(0xFF00A86B);
-    }
-    TransactionType selectedType = isEditing
-        ? category.type
-        : TransactionType.expense;
-    int selectedIconCode = isEditing ? category.iconCodePoint : 0xe57a;
-    Color selectedColor = isEditing
-        ? Color(category.colorValue)
-        : getColorForType(selectedType);
-
-    showDialog(
+  void _showAddEditSheet(BuildContext context, {CategoryEntity? category}) {
+    showModalBottomSheet(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return CustomDialog(
-              title: isEditing ? 'Edit Category' : 'New Category',
-              icon: isEditing ? Icons.edit_rounded : Icons.category_rounded,
-              primaryButtonText: isEditing ? 'Save' : 'Add',
-              onPrimaryPressed: () {
-                if (nameController.text.trim().isEmpty) return;
-
-                final newCategory = CategoryEntity(
-                  id: isEditing ? category.id : const Uuid().v4(),
-                  name: nameController.text.trim(),
-                  iconCodePoint: selectedIconCode,
-                  colorValue: selectedColor.value,
-                  type: selectedType,
-                  isCustom: true,
-                );
-
-                final provider = Provider.of<CategoryProvider>(
-                  context,
-                  listen: false,
-                );
-                if (isEditing) {
-                  provider.updateCategory(newCategory);
-                } else {
-                  provider.addCategory(newCategory);
-                }
-                Navigator.pop(context);
-              },
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nameController,
-                      decoration: InputDecoration(
-                        hintText: 'Category Name',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        filled: true,
-                        fillColor: AppColors.lightGrey.withOpacity(0.5),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: selectedColor),
-                        ),
-                      ),
-                      textCapitalization: TextCapitalization.words,
-                      style: TextStyle(
-                        fontSize: Responsive.fontSize(context, 16),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        _TypeChip(
-                          'Expense',
-                          TransactionType.expense,
-                          selectedType,
-                          (val) => setState(() {
-                                selectedType = val;
-                                if (!isEditing) {
-                                  selectedColor = getColorForType(val);
-                                }
-                              }),
-                        ),
-                        const SizedBox(width: 8),
-                        _TypeChip(
-                          'Income',
-                          TransactionType.income,
-                          selectedType,
-                          (val) => setState(() => selectedType = val),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Select Color",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: Responsive.fontSize(context, 14),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    BlockPicker(
-                      pickerColor: selectedColor,
-                      onColorChanged: (color) {
-                        setState(() {
-                          selectedColor = color;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Select Icon",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: Responsive.fontSize(context, 14),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    IconPicker(
-                      selectedIconCode: selectedIconCode,
-                      selectedColor: selectedColor,
-                      onIconSelected: (code) =>
-                          setState(() => selectedIconCode = code),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class _TypeChip extends StatelessWidget {
-  final String label;
-  final TransactionType value;
-  final TransactionType groupValue;
-  final ValueChanged<TransactionType> onChanged;
-
-  const _TypeChip(this.label, this.value, this.groupValue, this.onChanged);
-
-  @override
-  Widget build(BuildContext context) {
-    final isSelected = value == groupValue;
-    return GestureDetector(
-      onTap: () => onChanged(value),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.lightGrey,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: Responsive.fontSize(context, 14),
-          ),
-        ),
-      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddCategorySheet(initialCategory: category),
     );
   }
 }

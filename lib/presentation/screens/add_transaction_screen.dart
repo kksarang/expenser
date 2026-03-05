@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../core/constants/app_colors.dart';
@@ -10,6 +11,7 @@ import '../../domain/entities/transaction_entity.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/category_provider.dart';
 import 'category_management_screen.dart';
+import '../widgets/add_category_sheet.dart';
 
 import '../../core/utils/responsive.dart';
 
@@ -129,105 +131,22 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   void _showCategoryBottomSheet() {
-    final responsiveHeight = Responsive.height(context);
-
-    final isTablet = Responsive.isTablet(context);
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => Consumer<CategoryProvider>(
-        builder: (context, categoryProvider, _) {
-          final categories = categoryProvider.categories
-              .where((c) => c.type == _selectedType)
-              .toList();
-          return Container(
-            padding: const EdgeInsets.all(24),
-            height: responsiveHeight * 0.7,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Select Category',
-                      style: TextStyle(
-                        fontSize: Responsive.fontSize(context, 20),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context); // Close sheet
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const CategoryManagementScreen(),
-                          ),
-                        );
-                      },
-                      icon: Icon(
-                        Icons.settings_rounded,
-                        size: Responsive.fontSize(context, 20),
-                      ),
-                      label: const Text('Manage'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: isTablet ? 6 : 4,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                    ),
-                    itemCount: categories.length,
-                    itemBuilder: (context, index) {
-                      final category = categories[index];
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() => _selectedCategory = category);
-                          Navigator.pop(context);
-                        },
-                        child: Column(
-                          children: [
-                            CircleAvatar(
-                              radius: isTablet ? 30 : 20,
-                              backgroundColor: Color(
-                                category.colorValue,
-                              ).withOpacity(0.2),
-                              child: Icon(
-                                IconData(
-                                  category.iconCodePoint,
-                                  fontFamily: 'MaterialIcons',
-                                ),
-                                color: Color(category.colorValue),
-                                size: isTablet ? 32 : 24,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              category.name,
-                              style: TextStyle(
-                                fontSize: Responsive.fontSize(context, 12),
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => _CategoryPickerSheet(
+        selectedType: _selectedType,
+        selectedCategory: _selectedCategory,
+        onCategorySelected: (cat) {
+          setState(() => _selectedCategory = cat);
+          Navigator.pop(sheetCtx);
+        },
+        onManage: () {
+          Navigator.pop(sheetCtx);
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CategoryManagementScreen()),
           );
         },
       ),
@@ -796,5 +715,264 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
+  }
+}
+
+class _CategoryPickerSheet extends StatefulWidget {
+  final TransactionType selectedType;
+  final CategoryEntity? selectedCategory;
+  final Function(CategoryEntity) onCategorySelected;
+  final VoidCallback onManage;
+
+  const _CategoryPickerSheet({
+    required this.selectedType,
+    this.selectedCategory,
+    required this.onCategorySelected,
+    required this.onManage,
+  });
+
+  @override
+  State<_CategoryPickerSheet> createState() => _CategoryPickerSheetState();
+}
+
+class _CategoryPickerSheetState extends State<_CategoryPickerSheet> {
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF9F9F9),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        children: [
+          // Header with Gradient
+          Container(
+            padding: const EdgeInsets.only(
+              top: 8,
+              bottom: 24,
+              left: 16,
+              right: 16,
+            ),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFE5D1FF),
+                  Color(0xFFF0E5FF),
+                  Color(0xFFF9F9F9),
+                ],
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: Column(
+              children: [
+                // Handle pull
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.black12,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                // Title row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.arrow_back_ios_new, size: 16),
+                      ),
+                    ),
+                    Text(
+                      'Select Category',
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black.withOpacity(0.8),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: widget.onManage,
+                      child: Text(
+                        'Manage',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Search Bar
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                    decoration: InputDecoration(
+                      hintText: 'Search for Categories',
+                      hintStyle: GoogleFonts.inter(color: Colors.black26),
+                      icon: const Icon(Icons.search, color: Colors.black26),
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Grid View
+          Expanded(
+            child: Consumer<CategoryProvider>(
+              builder: (context, provider, _) {
+                final filteredCategories = provider.categories
+                    .where(
+                      (c) =>
+                          c.type == widget.selectedType &&
+                          c.name.toLowerCase().contains(
+                            _searchQuery.toLowerCase(),
+                          ),
+                    )
+                    .toList();
+
+                return GridView.builder(
+                  padding: const EdgeInsets.all(20),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    mainAxisSpacing: 20,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 0.75,
+                  ),
+                  itemCount: filteredCategories.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      // Add Button
+                      return _buildCategoryItem(
+                        icon: Icons.add,
+                        label: 'Add',
+                        color: AppColors.primary,
+                        onTap: () {
+                          Navigator.pop(context); // Close picker
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const AddCategorySheet(),
+                          );
+                        },
+                        isPlaceholder: true,
+                      );
+                    }
+
+                    final category = filteredCategories[index - 1];
+                    final isSelected =
+                        widget.selectedCategory?.id == category.id;
+
+                    return _buildCategoryItem(
+                      icon: IconData(
+                        category.iconCodePoint,
+                        fontFamily: 'MaterialIcons',
+                      ),
+                      label: category.name,
+                      color: Color(category.colorValue),
+                      onTap: () => widget.onCategorySelected(category),
+                      isSelected: isSelected,
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryItem({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+    bool isSelected = false,
+    bool isPlaceholder = false,
+  }) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: isSelected
+                    ? Border.all(color: AppColors.primary, width: 2)
+                    : null,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Icon(
+                  icon,
+                  color: isPlaceholder ? AppColors.primary : color,
+                  size: 28,
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            color: isSelected ? AppColors.primary : Colors.black54,
+          ),
+        ),
+      ],
+    );
   }
 }

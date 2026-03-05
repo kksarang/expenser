@@ -12,6 +12,7 @@ import 'package:lottie/lottie.dart';
 import '../../core/utils/responsive.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'transaction_detail_screen.dart';
+import 'insights_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -71,6 +72,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       bgColor: const Color(0xFFEEE5FF), // Light Purple
                       iconColor: AppColors.primary,
                       icon: Icons.arrow_downward_rounded,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const InsightsScreen(
+                              type: TransactionType.income,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -81,6 +92,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       bgColor: const Color(0xFFFFEFE9), // Light Peach
                       iconColor: const Color(0xFFFF643B), // Orange/Peach Dark
                       icon: Icons.arrow_upward_rounded,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const InsightsScreen(
+                              type: TransactionType.expense,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -624,6 +645,7 @@ class _OverviewCard extends StatelessWidget {
   final Color bgColor; // Used as base or gradient start
   final Color iconColor;
   final IconData icon;
+  final VoidCallback? onTap;
 
   const _OverviewCard({
     required this.label,
@@ -631,6 +653,7 @@ class _OverviewCard extends StatelessWidget {
     required this.bgColor,
     required this.iconColor,
     required this.icon,
+    this.onTap,
   });
 
   @override
@@ -641,61 +664,64 @@ class _OverviewCard extends StatelessWidget {
         ? [const Color(0xFFF3E8FF), const Color(0xFFEADBFF)] // Purple-ish
         : [const Color(0xFFFFEFE9), const Color(0xFFFFE0D1)]; // Peach-ish
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: gradientColors,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: gradientColors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: bgColor.withOpacity(0.4), // Soften shadow
+              blurRadius: 16, // Increase blur for modern look
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: bgColor.withOpacity(0.4), // Soften shadow
-            blurRadius: 16, // Increase blur for modern look
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    color: iconColor,
+                    size: Responsive.fontSize(context, 20),
+                  ),
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor,
-                  size: Responsive.fontSize(context, 20),
-                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.black54,
+                fontSize: Responsive.fontSize(context, 13),
+                fontWeight: FontWeight.w600,
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.black54,
-              fontSize: Responsive.fontSize(context, 13),
-              fontWeight: FontWeight.w600,
             ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            '₹${amount.toStringAsFixed(0)}',
-            style: TextStyle(
-              fontSize: Responsive.fontSize(context, 24),
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+            const SizedBox(height: 6),
+            Text(
+              '₹${amount.toStringAsFixed(0)}',
+              style: TextStyle(
+                fontSize: Responsive.fontSize(context, 24),
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
