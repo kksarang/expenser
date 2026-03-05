@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import '../../core/utils/responsive.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'transaction_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -387,6 +388,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                             child: _AnimatedTransactionCard(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => TransactionDetailScreen(
+                                    transaction: transaction,
+                                  ),
+                                ),
+                              ),
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Colors.white,
@@ -558,8 +567,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class _AnimatedTransactionCard extends StatefulWidget {
   final Widget child;
+  final VoidCallback? onTap;
 
-  const _AnimatedTransactionCard({required this.child});
+  const _AnimatedTransactionCard({required this.child, this.onTap});
 
   @override
   State<_AnimatedTransactionCard> createState() =>
@@ -580,7 +590,10 @@ class _AnimatedTransactionCardState extends State<_AnimatedTransactionCard> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) => _setPressed(true),
-      onTapUp: (_) => _setPressed(false),
+      onTapUp: (_) {
+        _setPressed(false);
+        widget.onTap?.call();
+      },
       onTapCancel: () => _setPressed(false),
       behavior: HitTestBehavior.translucent,
       child: AnimatedContainer(

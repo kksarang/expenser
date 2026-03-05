@@ -33,36 +33,72 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   CategoryEntity? _selectedCategory;
   DateTime _selectedDate = DateTime.now();
 
-  // New State variables
-  PaymentType _selectedPaymentType = PaymentType.cash;
-  final _accountController = TextEditingController(
-    text: 'Cash',
-  ); // Default account
+  String _selectedAccount = 'Cash'; // unified account selection
   final _payeeController = TextEditingController();
   final _referenceController = TextEditingController();
 
-  // Helper for Account Selection logic
+  // All account options (offline + UPI)
   final List<String> _accountOptions = [
     'Cash',
-    'Bank Account',
-    'Credit Card',
-    'Wallet',
+    'Card',
+    'Bank',
+    'GPay',
+    'PhonePe',
+    'Paytm',
+    'CRED',
   ];
+
+  // Icon for each account option
+  IconData _accountIcon(String account) {
+    switch (account) {
+      case 'Cash':
+        return Icons.payments_rounded;
+      case 'Card':
+        return Icons.credit_card_rounded;
+      case 'Bank':
+        return Icons.account_balance_rounded;
+      case 'GPay':
+        return Icons.g_mobiledata_rounded;
+      case 'PhonePe':
+        return Icons.phone_android_rounded;
+      case 'Paytm':
+        return Icons.account_balance_wallet_rounded;
+      case 'CRED':
+        return Icons.diamond_rounded;
+      default:
+        return Icons.account_balance_wallet_rounded;
+    }
+  }
+
+  // Derive PaymentType from account string
+  PaymentType _derivePaymentType(String account) {
+    switch (account) {
+      case 'Cash':
+        return PaymentType.cash;
+      case 'Card':
+        return PaymentType.card;
+      case 'Bank':
+        return PaymentType.bankTransfer;
+      default:
+        return PaymentType.upiWallet; // GPay, PhonePe, Paytm, CRED
+    }
+  }
 
   bool _initializedFromExisting = false;
 
   @override
   void initState() {
     super.initState();
-    _selectedType =
-        widget.initialTransaction?.type ?? widget.initialType;
+    _selectedType = widget.initialTransaction?.type ?? widget.initialType;
     if (widget.initialTransaction != null) {
       final tx = widget.initialTransaction!;
       _amountController.text = tx.amount.toStringAsFixed(0);
       _noteController.text = tx.note ?? '';
       _selectedDate = tx.date;
-      _selectedPaymentType = tx.paymentType;
-      _accountController.text = tx.account;
+      // Map existing account back to chips; fall back to 'Cash'
+      _selectedAccount = _accountOptions.contains(tx.account)
+          ? tx.account
+          : 'Cash';
       _payeeController.text = tx.payee ?? '';
       _referenceController.text = tx.reference ?? '';
     }
@@ -76,8 +112,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         context,
         listen: false,
       );
-      _selectedCategory = categoryProvider
-          .getCategoryById(widget.initialTransaction!.categoryId);
+      _selectedCategory = categoryProvider.getCategoryById(
+        widget.initialTransaction!.categoryId,
+      );
       _initializedFromExisting = true;
     }
   }
@@ -86,7 +123,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   void dispose() {
     _amountController.dispose();
     _noteController.dispose();
-    _accountController.dispose();
     _payeeController.dispose();
     _referenceController.dispose();
     super.dispose();
@@ -484,76 +520,76 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Payment Method Selector
+                        // ── Account (replaces Payment Method + old Account dropdown) ──
                         _buildSectionHeader('Payment Method'),
-                        const SizedBox(height: 8),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: PaymentType.values.map((type) {
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: ChoiceChip(
-                                  label: Text(_getPaymentTypeLabel(type)),
-                                  selected: _selectedPaymentType == type,
-                                  onSelected: (selected) {
-                                    if (selected)
-                                      setState(
-                                        () => _selectedPaymentType = type,
-                                      );
-                                  },
-                                  selectedColor: AppColors.primary.withOpacity(
-                                    0.2,
-                                  ),
-                                  labelStyle: TextStyle(
-                                    color: _selectedPaymentType == type
-                                        ? AppColors.primary
-                                        : Colors.black,
-                                  ),
-                                  backgroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    side: BorderSide(
-                                      color: _selectedPaymentType == type
-                                          ? AppColors.primary
-                                          : AppColors.lightGrey,
-                                    ),
-                                  ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _accountOptions.map((option) {
+                            final isSelected = _selectedAccount == option;
+                            return GestureDetector(
+                              onTap: () =>
+                                  setState(() => _selectedAccount = option),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
                                 ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Account Selector
-                        _buildSectionHeader('Account'),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          value:
-                              _accountOptions.contains(_accountController.text)
-                              ? _accountController.text
-                              : null,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                          ),
-                          hint: const Text("Select Account"),
-                          items: _accountOptions
-                              .map(
-                                (e) =>
-                                    DropdownMenuItem(value: e, child: Text(e)),
-                              )
-                              .toList(),
-                          onChanged: (val) {
-                            if (val != null)
-                              setState(() => _accountController.text = val);
-                          },
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppColors.primary.withOpacity(0.12)
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? AppColors.primary
+                                        : AppColors.lightGrey,
+                                    width: isSelected ? 1.5 : 1,
+                                  ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: AppColors.primary
+                                                .withOpacity(0.15),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : [],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      _accountIcon(option),
+                                      size: 16,
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : AppColors.grey,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      option,
+                                      style: TextStyle(
+                                        fontSize: Responsive.fontSize(
+                                          context,
+                                          13,
+                                        ),
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        color: isSelected
+                                            ? AppColors.primary
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                         const SizedBox(height: 16),
 
@@ -673,19 +709,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
   }
 
-  String _getPaymentTypeLabel(PaymentType type) {
-    switch (type) {
-      case PaymentType.cash:
-        return 'Cash';
-      case PaymentType.card:
-        return 'Card';
-      case PaymentType.bankTransfer:
-        return 'Bank';
-      case PaymentType.upiWallet:
-        return 'UPI/Wallet';
-    }
-  }
-
   Widget _buildSectionHeader(String title) {
     return Align(
       alignment: Alignment.centerLeft,
@@ -718,13 +741,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       return;
     }
 
-    if (_accountController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select an account')));
-      return;
-    }
-
     final transaction = TransactionEntity(
       id: isEditing ? widget.initialTransaction!.id : const Uuid().v4(),
       amount: amount,
@@ -732,8 +748,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       date: _selectedDate,
       note: _noteController.text,
       type: _selectedType,
-      paymentType: _selectedPaymentType,
-      account: _accountController.text,
+      paymentType: _derivePaymentType(_selectedAccount),
+      account: _selectedAccount,
       payee: _payeeController.text.isEmpty ? null : _payeeController.text,
       reference: _referenceController.text.isEmpty
           ? null
