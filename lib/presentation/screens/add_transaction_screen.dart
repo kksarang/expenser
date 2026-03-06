@@ -36,6 +36,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   DateTime _selectedDate = DateTime.now();
 
   String _selectedAccount = 'Cash'; // unified account selection
+  bool _isLoading = false;
   final _payeeController = TextEditingController();
   final _referenceController = TextEditingController();
 
@@ -87,7 +88,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   bool _initializedFromExisting = false;
-  bool _isLoading = false;
 
   @override
   void initState() {
