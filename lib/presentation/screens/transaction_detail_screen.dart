@@ -9,6 +9,7 @@ import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../providers/category_provider.dart';
 import '../providers/transaction_provider.dart';
+import '../providers/wallet_provider.dart';
 import '../utils/transaction_actions.dart';
 import '../widgets/custom_dialog.dart';
 import 'add_transaction_screen.dart';
@@ -142,7 +143,7 @@ class TransactionDetailScreen extends StatelessWidget {
                           width: 72,
                           height: 72,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -159,7 +160,7 @@ class TransactionDetailScreen extends StatelessWidget {
                         Text(
                           category?.name ?? 'Unknown',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.85),
+                            color: Colors.white.withValues(alpha: 0.85),
                             fontSize: Responsive.fontSize(context, 14),
                             fontWeight: FontWeight.w600,
                           ),
@@ -184,7 +185,7 @@ class TransactionDetailScreen extends StatelessWidget {
                             'dd MMM yyyy • hh:mm a',
                           ).format(transaction.date),
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                             fontSize: Responsive.fontSize(context, 13),
                             fontWeight: FontWeight.w500,
                           ),
@@ -220,7 +221,7 @@ class TransactionDetailScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
+                          color: Colors.black.withValues(alpha: 0.06),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -232,7 +233,7 @@ class TransactionDetailScreen extends StatelessWidget {
                           icon: isIncome
                               ? Icons.arrow_downward_rounded
                               : Icons.arrow_upward_rounded,
-                          iconBgColor: amountColor.withOpacity(0.1),
+                          iconBgColor: amountColor.withValues(alpha: 0.1),
                           iconColor: amountColor,
                           label: 'Transaction Type',
                           value: isIncome ? 'Income' : 'Expense',
@@ -241,7 +242,7 @@ class TransactionDetailScreen extends StatelessWidget {
                         _Divider(),
                         _DetailRow(
                           icon: categoryIcon,
-                          iconBgColor: categoryColor.withOpacity(0.1),
+                          iconBgColor: categoryColor.withValues(alpha: 0.1),
                           iconColor: categoryColor,
                           label: 'Category',
                           value: category?.name ?? 'Unknown',
@@ -249,7 +250,7 @@ class TransactionDetailScreen extends StatelessWidget {
                         _Divider(),
                         _DetailRow(
                           icon: Icons.calendar_today_rounded,
-                          iconBgColor: AppColors.primary.withOpacity(0.1),
+                          iconBgColor: AppColors.primary.withValues(alpha: 0.1),
                           iconColor: AppColors.primary,
                           label: 'Date',
                           value: DateFormat(
@@ -259,18 +260,34 @@ class TransactionDetailScreen extends StatelessWidget {
                         _Divider(),
                         _DetailRow(
                           icon: _getPaymentIcon(transaction.paymentType),
-                          iconBgColor: const Color(0xFFFCAC12).withOpacity(0.1),
+                          iconBgColor: const Color(0xFFFCAC12).withValues(alpha: 0.1),
                           iconColor: const Color(0xFFFCAC12),
                           label: 'Payment Method',
                           value: _getPaymentLabel(transaction.paymentType),
                         ),
                         _Divider(),
-                        _DetailRow(
-                          icon: Icons.account_balance_wallet_rounded,
-                          iconBgColor: Colors.teal.withOpacity(0.1),
-                          iconColor: Colors.teal,
-                          label: 'Account',
-                          value: transaction.account,
+                        Consumer<WalletProvider>(
+                          builder: (context, walletProvider, _) {
+                            final walletId = transaction.walletId;
+                            String walletLabel = 'Personal: ${transaction.account}';
+                            
+                            if (walletId != null) {
+                              final foundWallet = walletProvider.wallets.where((w) => w.id == walletId).toList();
+                              if (foundWallet.isNotEmpty) {
+                                walletLabel = 'Group: ${foundWallet.first.name}';
+                              } else {
+                                walletLabel = 'Group Wallet';
+                              }
+                            }
+
+                            return _DetailRow(
+                              icon: Icons.account_balance_wallet_rounded,
+                              iconBgColor: Colors.teal.withValues(alpha: 0.1),
+                              iconColor: Colors.teal,
+                              label: 'Wallet',
+                              value: walletLabel,
+                            );
+                          },
                         ),
                         if (transaction.payee != null &&
                             transaction.payee!.isNotEmpty) ...[
@@ -279,7 +296,7 @@ class TransactionDetailScreen extends StatelessWidget {
                             icon: isIncome
                                 ? Icons.person_rounded
                                 : Icons.store_rounded,
-                            iconBgColor: Colors.indigo.withOpacity(0.1),
+                            iconBgColor: Colors.indigo.withValues(alpha: 0.1),
                             iconColor: Colors.indigo,
                             label: isIncome
                                 ? 'Payer / Source'
@@ -292,7 +309,7 @@ class TransactionDetailScreen extends StatelessWidget {
                           _Divider(),
                           _DetailRow(
                             icon: Icons.receipt_long_rounded,
-                            iconBgColor: Colors.brown.withOpacity(0.1),
+                            iconBgColor: Colors.brown.withValues(alpha: 0.1),
                             iconColor: Colors.brown,
                             label: 'Reference No.',
                             value: transaction.reference!,
@@ -322,7 +339,7 @@ class TransactionDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -334,7 +351,7 @@ class TransactionDetailScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: AppColors.grey.withOpacity(0.1),
+                              color: AppColors.grey.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(
@@ -372,7 +389,7 @@ class TransactionDetailScreen extends StatelessWidget {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.07),
+              color: Colors.black.withValues(alpha: 0.07),
               blurRadius: 16,
               offset: const Offset(0, -4),
             ),

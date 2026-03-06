@@ -287,7 +287,7 @@ class CategoryProvider with ChangeNotifier {
               notifyListeners();
             },
             onError: (e) {
-              print("Category Stream Error (Expected during logout): $e");
+              debugPrint("Category Stream Error (Expected during logout): $e");
             },
           );
     } else {

@@ -19,7 +19,7 @@ class AnalyticsPreviewChart extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.lightGrey.withOpacity(0.5)),
+                border: Border.all(color: AppColors.lightGrey.withValues(alpha: 0.5)),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Row(

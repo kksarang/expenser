@@ -71,8 +71,8 @@ class _CustomDialogState extends State<CustomDialog> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: (widget.iconColor ?? AppColors.primary).withOpacity(
-                          0.1,
+                        color: (widget.iconColor ?? AppColors.primary).withValues(
+                          alpha: 0.1,
                         ),
                         shape: BoxShape.circle,
                       ),
@@ -126,7 +126,7 @@ class _CustomDialogState extends State<CustomDialog> {
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: Responsive.fontSize(context, 16),
-                              color: _isLoading ? Colors.grey.withOpacity(0.5) : Colors.grey,
+                              color: _isLoading ? Colors.grey.withValues(alpha: 0.5) : Colors.grey,
                             ),
                           ),
                         ),
@@ -143,7 +143,7 @@ class _CustomDialogState extends State<CustomDialog> {
                             foregroundColor: Colors.white,
                             disabledBackgroundColor: (widget.isDestructive
                                 ? Colors.red
-                                : AppColors.primary).withOpacity(0.6),
+                                : AppColors.primary).withValues(alpha: 0.6),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),

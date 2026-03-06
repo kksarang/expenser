@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../constants/app_colors.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../data/models/transaction_model.dart';
-import 'package:flutter/material.dart';
 
 import '../../data/models/category_model.dart';
 
@@ -15,7 +13,10 @@ class FirestoreService {
     return _firestore.collection('users');
   }
 
-  CollectionReference _transactionsCollection(String userId) {
+  CollectionReference _transactionsCollection(String userId, {String? walletId}) {
+    if (walletId != null) {
+      return _firestore.collection('wallets').doc(walletId).collection('transactions');
+    }
     return _usersCollection().doc(userId).collection('transactions');
   }
 
@@ -29,17 +30,37 @@ class FirestoreService {
     await _usersCollection().doc(userId).set({
       'name': name,
       'email': email,
-      'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+  }
+
+  Future<Map<String, String>> getUserProfiles(List<String> uids) async {
+    Map<String, String> profiles = {};
+    if (uids.isEmpty) return profiles;
+
+    try {
+      // Current limit of 'whereIn' is 30, which should be plenty for shared wallets
+      final query = await _usersCollection()
+          .where(FieldPath.documentId, whereIn: uids.take(30).toList())
+          .get();
+      
+      for (var doc in query.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        profiles[doc.id] = data['name'] ?? 'Unknown User';
+      }
+    } catch (e) {
+      print('Error fetching user profiles: $e');
+    }
+    return profiles;
   }
 
   // --- Transactions ---
 
   Future<void> saveTransaction(
     String userId,
-    TransactionEntity transaction,
-  ) async {
+    TransactionEntity transaction, {
+    String? walletId,
+  }) async {
     final model = TransactionModel(
       id: transaction.id,
       amount: transaction.amount,
@@ -51,20 +72,23 @@ class FirestoreService {
       account: transaction.account,
       payee: transaction.payee,
       reference: transaction.reference,
+      walletId: walletId ?? transaction.walletId,
     );
 
     await _transactionsCollection(
       userId,
+      walletId: walletId,
     ).doc(transaction.id).set(model.toMap());
   }
 
-  Future<void> deleteTransaction(String userId, String transactionId) async {
-    await _transactionsCollection(userId).doc(transactionId).delete();
+  Future<void> deleteTransaction(String userId, String transactionId, {String? walletId}) async {
+    await _transactionsCollection(userId, walletId: walletId).doc(transactionId).delete();
   }
 
-  Stream<List<TransactionEntity>> getTransactionsStream(String userId) {
+  Stream<List<TransactionEntity>> getTransactionsStream(String userId, {String? walletId}) {
     return _transactionsCollection(
       userId,
+      walletId: walletId,
     ).orderBy('date', descending: true).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         return TransactionModel.fromMap(doc.data() as Map<String, dynamic>);

@@ -9,8 +9,7 @@ class AppTheme {
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       brightness: Brightness.light,
-      background: const Color(0xFFFDFBFF),
-      surface: Colors.white, // Cards stay white
+      surface: const Color(0xFFFDFBFF),
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.white,
@@ -59,8 +58,7 @@ class AppTheme {
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       brightness: Brightness.dark,
-      background: AppColors.dark,
-      surface: const Color(0xFF1E1E2D), // Slightly lighter than background
+      surface: AppColors.dark,
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.dark,
@@ -84,6 +82,8 @@ class AppTheme {
     bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: Color(0xFF1E1E2D),
     ),
-    dialogBackgroundColor: const Color(0xFF1E1E2D),
+    dialogTheme: const DialogThemeData(
+      backgroundColor: Color(0xFF1E1E2D),
+    ),
   );
 }

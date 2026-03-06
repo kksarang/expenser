@@ -39,7 +39,7 @@ class UserProvider with ChangeNotifier {
         notifyListeners();
       },
       onError: (e) {
-        print("UserProvider auth listen error: $e");
+        debugPrint("UserProvider auth listen error: $e");
       },
     );
 
@@ -74,13 +74,13 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
-    print("UserProvider: logout() called. Setting isGuest = false.");
+    debugPrint("UserProvider: logout() called. Setting isGuest = false.");
     _isGuest = false;
     _user = null; // Explicitly clear user
     await _saveGuestStatus(false);
-    print("UserProvider: Signing out from Firebase...");
+    debugPrint("UserProvider: Signing out from Firebase...");
     await _authService.signOut();
-    print("UserProvider: Sign out done. Notifying listeners.");
+    debugPrint("UserProvider: Sign out done. Notifying listeners.");
     notifyListeners();
   }
 

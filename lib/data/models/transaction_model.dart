@@ -14,6 +14,7 @@ class TransactionModel extends TransactionEntity {
     required super.account,
     super.payee,
     super.reference,
+    super.walletId,
   });
 
   Map<String, dynamic> toMap() {
@@ -28,6 +29,7 @@ class TransactionModel extends TransactionEntity {
       'account': account,
       'payee': payee,
       'reference': reference,
+      'walletId': walletId,
     };
   }
 
@@ -45,6 +47,7 @@ class TransactionModel extends TransactionEntity {
       account: map['account'] ?? 'Cash', // Default
       payee: map['payee'],
       reference: map['reference'],
+      walletId: map['walletId'],
     );
   }
 

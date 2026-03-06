@@ -3,6 +3,7 @@ import '../../core/constants/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/category_provider.dart';
+import '../providers/wallet_provider.dart';
 
 import '../../domain/entities/category_entity.dart';
 import '../utils/transaction_actions.dart';
@@ -13,6 +14,7 @@ import '../../core/utils/responsive.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'transaction_detail_screen.dart';
 import 'insights_screen.dart';
+import 'wallets_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -53,11 +55,98 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     'Expenser',
                     style: TextStyle(
+                      color: const Color.fromARGB(255, 22, 11, 42),
                       fontSize: Responsive.fontSize(context, 18),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Wallet Indicator Banner
+              Consumer<WalletProvider>(
+                builder: (context, walletProvider, child) {
+                  final isShared = walletProvider.selectedWallet != null;
+                  final activeWalletName =
+                      walletProvider.selectedWallet?.name ?? 'Personal Wallet';
+
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 4.0, bottom: 8.0),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const WalletsScreen(),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isShared
+                                ? AppColors.primary.withValues(alpha: 0.1)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isShared
+                                  ? AppColors.primary.withValues(alpha: 0.3)
+                                  : Colors.grey.shade300,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isShared
+                                    ? Icons.supervised_user_circle_rounded
+                                    : Icons.account_balance_wallet_rounded,
+                                size: 16,
+                                color: isShared
+                                    ? AppColors.primary
+                                    : Colors.grey.shade700,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                activeWalletName,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: isShared
+                                      ? AppColors.primary
+                                      : Colors.grey.shade700,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                size: 16,
+                                color: isShared
+                                    ? AppColors.primary
+                                    : Colors.grey.shade500,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
 
               const SizedBox(height: 24),
@@ -219,8 +308,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                             int index = value.toInt();
 
-                            if (index < 0 || index >= summaryData.length)
+                            if (index < 0 || index >= summaryData.length) {
                               return const SizedBox.shrink();
+                            }
 
                             String text = '';
                             if (_selectedTimeframe == Timeframe.week) {
@@ -257,7 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           getTitlesWidget: (value, meta) {
                             if (value == 0) return const SizedBox.shrink();
                             // Compact format for large numbers
-                            if (value >= 1000)
+                            if (value >= 1000) {
                               return Text(
                                 '${(value / 1000).toStringAsFixed(1)}k',
                                 style: TextStyle(
@@ -265,6 +355,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   fontSize: Responsive.fontSize(context, 10),
                                 ),
                               );
+                            }
                             return Text(
                               value.toInt().toString(),
                               style: TextStyle(
@@ -432,7 +523,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     decoration: BoxDecoration(
                                       color: Color(
                                         category?.colorValue ?? 0xFFEEE5FF,
-                                      ).withOpacity(0.15),
+                                      ).withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: Icon(
@@ -456,13 +547,37 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                   ),
-                                  subtitle: Text(
-                                    DateFormat(
-                                      'dd MMM yyyy',
-                                    ).format(transaction.date),
-                                    style: const TextStyle(
-                                      color: AppColors.grey,
-                                    ),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        DateFormat(
+                                          'dd MMM yyyy, hh:mm a',
+                                        ).format(transaction.date),
+                                        style: const TextStyle(
+                                          color: AppColors.grey,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      if (transaction.note != null &&
+                                          transaction.note!.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 4.0,
+                                          ),
+                                          child: Text(
+                                            transaction.note!,
+                                            style: TextStyle(
+                                              color: Colors.grey.shade600,
+                                              fontSize: 12,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -629,7 +744,7 @@ class _AnimatedTransactionCardState extends State<_AnimatedTransactionCard> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: _isPressed ? 8 : 16,
               offset: Offset(0, _isPressed ? 4 : 10),
             ),
@@ -679,7 +794,7 @@ class _OverviewCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: bgColor.withOpacity(0.4), // Soften shadow
+              color: bgColor.withValues(alpha: 0.4), // Soften shadow
               blurRadius: 16, // Increase blur for modern look
               offset: const Offset(0, 8),
             ),

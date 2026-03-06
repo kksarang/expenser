@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../domain/entities/notification_entity.dart';
 import '../../core/services/notification_service.dart';
 
@@ -8,10 +9,13 @@ class NotificationProvider extends ChangeNotifier {
   
   List<NotificationEntity> _notifications = [];
   bool _isLoading = false;
+  AuthorizationStatus _authorizationStatus = AuthorizationStatus.notDetermined;
   StreamSubscription<List<NotificationEntity>>? _notificationSubscription;
 
   List<NotificationEntity> get notifications => _notifications;
   bool get isLoading => _isLoading;
+  AuthorizationStatus get authorizationStatus => _authorizationStatus;
+  bool get hasPermission => _authorizationStatus == AuthorizationStatus.authorized;
 
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
@@ -20,7 +24,13 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> _initFCM() async {
-    await _notificationService.setupFirebaseMessaging();
+    _authorizationStatus = await _notificationService.setupFirebaseMessaging();
+    notifyListeners();
+  }
+
+  Future<void> requestPermission() async {
+    _authorizationStatus = await _notificationService.setupFirebaseMessaging();
+    notifyListeners();
   }
 
   void listenToNotifications() {
