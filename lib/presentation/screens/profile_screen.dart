@@ -233,6 +233,7 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 24),
 
                     // Group 2: Support (and Admin)
                     _ProfileMenuGroup(
@@ -290,6 +291,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                       ],
                     ),
+                    const SizedBox(height: 8),
 
                     // Footer
                     InkWell(
@@ -336,7 +338,8 @@ class ProfileScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                    ),
+                    ), // closing Center
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
@@ -682,7 +685,6 @@ class _ProfileMenuGroup extends StatelessWidget {
             }).toList(),
           ),
         ),
-        const SizedBox(height: 24),
       ],
     );
   }
