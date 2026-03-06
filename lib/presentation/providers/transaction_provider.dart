@@ -7,12 +7,15 @@ import '../../core/services/firestore_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../core/services/notification_service.dart';
+import '../../domain/entities/notification_entity.dart';
 
 enum Timeframe { week, month, year }
 
 class TransactionProvider with ChangeNotifier {
   List<TransactionEntity> _transactions = [];
   final FirestoreService _firestoreService = FirestoreService();
+  final NotificationService _notificationService = NotificationService();
 
   FirebaseAuth? get _auth {
     try {
@@ -107,6 +110,19 @@ class TransactionProvider with ChangeNotifier {
     if (user != null) {
       try {
         await _firestoreService.saveTransaction(user.uid, transaction);
+        
+        final isIncome = transaction.type == TransactionType.income;
+        await _notificationService.createNotification(NotificationEntity(
+          id: '',
+          title: isIncome ? 'Income Added' : 'Expense Added',
+          message: isIncome 
+              ? '₹${transaction.amount.toStringAsFixed(0)} income added successfully.'
+              : '₹${transaction.amount.toStringAsFixed(0)} added as expense.',
+          type: isIncome ? NotificationType.income : NotificationType.expense,
+          timestamp: DateTime.now(),
+          transactionId: transaction.id,
+        ));
+        
         // Stream will update local list automatically if successful
       } catch (e) {
         print("Firestore save failed: $e");
@@ -124,6 +140,15 @@ class TransactionProvider with ChangeNotifier {
     if (user != null) {
       try {
         await _firestoreService.saveTransaction(user.uid, transaction);
+        
+        await _notificationService.createNotification(NotificationEntity(
+          id: '',
+          title: 'Transaction Edited',
+          message: 'Your transaction has been updated.',
+          type: NotificationType.system,
+          timestamp: DateTime.now(),
+          transactionId: transaction.id,
+        ));
       } catch (e) {
         print("Firestore update failed: $e");
         rethrow;
@@ -142,6 +167,14 @@ class TransactionProvider with ChangeNotifier {
     final user = _safeUser;
     if (user != null) {
       await _firestoreService.deleteTransaction(user.uid, id);
+      
+      await _notificationService.createNotification(NotificationEntity(
+        id: '',
+        title: 'Transaction Deleted',
+        message: 'A transaction was removed from your records.',
+        type: NotificationType.system,
+        timestamp: DateTime.now(),
+      ));
     } else {
       _transactions.removeWhere((t) => t.id == id);
       await _saveLocalTransactions();

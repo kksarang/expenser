@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'dart:ui';
 import '../../core/constants/app_colors.dart';
+import '../../core/services/haptic_service.dart';
 import '../../domain/entities/category_entity.dart'; // For TransactionType
 import 'home_screen.dart';
 import 'calendar_screen.dart';
 import 'analytics_screen.dart';
 import 'profile_screen.dart';
 import 'add_transaction_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/notification_provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -44,6 +46,10 @@ class _MainScreenState extends State<MainScreen>
         curve: Curves.easeInOut,
       ),
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationProvider>().listenToNotifications();
+    });
   }
 
   @override
@@ -103,7 +109,7 @@ class _MainScreenState extends State<MainScreen>
                 // Center FAB
                 GestureDetector(
                   onTap: () {
-                    HapticFeedback.mediumImpact();
+                    HapticService.triggerMedium(context);
                     _showAddOptionsData();
                   },
                   child: AnimatedBuilder(
@@ -157,7 +163,7 @@ class _MainScreenState extends State<MainScreen>
     final isSelected = _currentIndex == index;
     return GestureDetector(
       onTap: () {
-        HapticFeedback.selectionClick();
+        HapticService.triggerLight(context);
         setState(() => _currentIndex = index);
       },
       behavior: HitTestBehavior.opaque,

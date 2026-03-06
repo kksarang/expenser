@@ -8,6 +8,8 @@ import 'presentation/providers/category_provider.dart';
 import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/bill_provider.dart'; // Added
+import 'presentation/providers/settings_provider.dart';
+import 'presentation/providers/notification_provider.dart';
 // import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/main_screen.dart';
 import 'presentation/screens/onboarding_screen.dart';
@@ -58,6 +60,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => BillProvider()), // Added
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

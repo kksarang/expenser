@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/services/haptic_service.dart';
 import '../../core/utils/responsive.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
@@ -463,6 +464,7 @@ class TransactionDetailScreen extends StatelessWidget {
           await provider.deleteTransaction(transaction.id);
 
           if (context.mounted) {
+            HapticService.triggerMedium(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: const Text('Transaction deleted'),

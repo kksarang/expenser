@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/services/haptic_service.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../providers/transaction_provider.dart';
@@ -759,6 +760,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       }
 
       if (mounted) {
+        HapticService.triggerLight(context);
         Navigator.pop(context);
 
         if (isOffline) {

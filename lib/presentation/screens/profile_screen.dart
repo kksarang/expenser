@@ -15,6 +15,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:image_picker/image_picker.dart';
 import 'login_screen.dart';
 import '../../core/services/local_storage_service.dart';
+import '../providers/settings_provider.dart';
+import 'notification_screen.dart';
+import '../providers/notification_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -193,6 +196,40 @@ class ProfileScreen extends StatelessWidget {
                     _ProfileMenuGroup(
                       title: 'Account & Utilities',
                       children: [
+                        Consumer<NotificationProvider>(
+                          builder: (context, provider, _) {
+                            return _ProfileMenuTile(
+                              icon: Icons.notifications_none_rounded,
+                              title: 'Notifications',
+                              trailing: provider.unreadCount > 0
+                                  ? Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        provider.unreadCount.toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )
+                                  : null,
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const NotificationScreen(),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                         _ProfileMenuTile(
                           icon: Icons.receipt_long_rounded,
                           title: 'Your Wallet Bills',
@@ -228,6 +265,38 @@ class ProfileScreen extends StatelessWidget {
                               subject: 'Check out Expenser App!',
                               sharePositionOrigin:
                                   box!.localToGlobal(Offset.zero) & box.size,
+                            );
+                          },
+                        ),
+                        Consumer<SettingsProvider>(
+                          builder: (context, settings, _) {
+                            return ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 4,
+                              ),
+                              leading: Icon(
+                                Icons.vibration_rounded,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white70
+                                    : Colors.black87,
+                                size: 24,
+                              ),
+                              title: Text(
+                                'Haptic Feedback',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                              ),
+                              trailing: Switch.adaptive(
+                                value: settings.hapticEnabled,
+                                activeColor: AppColors.primary,
+                                onChanged: (val) => settings.toggleHaptic(val),
+                              ),
                             );
                           },
                         ),
@@ -695,12 +764,14 @@ class _ProfileMenuTile extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
   final bool isDestructive;
+  final Widget? trailing;
 
   const _ProfileMenuTile({
     required this.icon,
     required this.title,
     required this.onTap,
     this.isDestructive = false,
+    this.trailing,
   });
 
   @override
@@ -727,11 +798,12 @@ class _ProfileMenuTile extends StatelessWidget {
               : (isDark ? Colors.white : Colors.black87),
         ),
       ),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        color: isDark ? Colors.white30 : Colors.grey.withOpacity(0.6),
-        size: 20,
-      ),
+      trailing: trailing ??
+          Icon(
+            Icons.chevron_right_rounded,
+            color: isDark ? Colors.white30 : Colors.grey.withOpacity(0.6),
+            size: 20,
+          ),
     );
   }
 }
