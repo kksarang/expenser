@@ -59,6 +59,8 @@ dependencies:
   vector_math: 2.1.4
   share_plus: 10.1.4
   image_picker: 1.0.7
+  google_generative_ai: ^0.4.6
+  flutter_dotenv: ^5.1.0
 
 
 dev_dependencies:
@@ -80,6 +82,7 @@ flutter:
   
   assets:
     - assets/images/
+    - .env
   
   # fonts:
   #   - family: Schyler

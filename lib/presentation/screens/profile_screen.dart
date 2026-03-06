@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import 'category_management_screen.dart';
+import 'bill_wallet_screen.dart';
 import '../../presentation/widgets/custom_dialog.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
-import '../providers/theme_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/category_provider.dart';
 import '../../core/services/firestore_service.dart';
@@ -160,6 +160,17 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Menu Items
+            _ProfileMenuTile(
+              icon: Icons.receipt_long_rounded,
+              title: 'Your Wallet Bills',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const BillWalletScreen(),
+                ),
+              ),
+            ),
+
             _ProfileMenuTile(
               icon: Icons.category_outlined,
               title: 'Categories',
