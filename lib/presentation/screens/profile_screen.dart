@@ -277,7 +277,9 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               leading: Icon(
                                 Icons.vibration_rounded,
-                                color: Theme.of(context).brightness == Brightness.dark
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? Colors.white70
                                     : Colors.black87,
                                 size: 24,
@@ -287,7 +289,9 @@ class ProfileScreen extends StatelessWidget {
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 15,
-                                  color: Theme.of(context).brightness == Brightness.dark
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
                                       ? Colors.white
                                       : Colors.black87,
                                 ),
@@ -798,7 +802,8 @@ class _ProfileMenuTile extends StatelessWidget {
               : (isDark ? Colors.white : Colors.black87),
         ),
       ),
-      trailing: trailing ??
+      trailing:
+          trailing ??
           Icon(
             Icons.chevron_right_rounded,
             color: isDark ? Colors.white30 : Colors.grey.withOpacity(0.6),

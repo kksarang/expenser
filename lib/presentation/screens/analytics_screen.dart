@@ -263,7 +263,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 );
               }, childCount: sortedCategoryIds.length),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 30)),
+            const SliverToBoxAdapter(child: SizedBox(height: 90)),
+            //SizedBox(height: 16), //
           ],
         ],
       ),
