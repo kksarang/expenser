@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .toList();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F5FA),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: responsiveWidth * 0.05),
@@ -544,7 +544,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
 
-              const SizedBox(height: 80),
+              const SizedBox(
+                height: 16,
+              ), // Increased to clear bottom navigation
             ],
           ),
         ),

@@ -30,13 +30,13 @@ void confirmDeleteTransaction(
       iconColor: Colors.red,
       isDestructive: true,
       primaryButtonText: 'Delete',
-      onPrimaryPressed: () {
+      onPrimaryPressed: () async {
         Navigator.pop(dialogContext);
         final provider = Provider.of<TransactionProvider>(
           context,
           listen: false,
         );
-        provider.deleteTransaction(transaction.id);
+        await provider.deleteTransaction(transaction.id);
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import 'category_management_screen.dart';
+import 'bill_wallet_screen.dart';
 import '../../presentation/widgets/custom_dialog.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
-import '../providers/theme_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/category_provider.dart';
 import '../../core/services/firestore_service.dart';
@@ -15,6 +15,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:image_picker/image_picker.dart';
 import 'login_screen.dart';
 import '../../core/services/local_storage_service.dart';
+import '../providers/settings_provider.dart';
+import 'notification_screen.dart';
+import '../providers/notification_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -22,281 +25,400 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDark = themeProvider.isDarkMode;
     final user = userProvider.user;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text(
-          'Expenser',
-          style: TextStyle(fontWeight: FontWeight.bold),
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.3],
+          colors: [
+            AppColors.primary.withOpacity(isDark ? 0.3 : 0.15),
+            Theme.of(context).scaffoldBackgroundColor,
+          ],
         ),
-        centerTitle: true,
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        elevation: 0,
-        automaticallyImplyLeading: false,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 20),
-            // User Avatar & Info
-            Center(
-              child: Column(
+            // Custom App Bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Stack(
                 children: [
-                  GestureDetector(
-                    onTap: () => _pickImage(context, userProvider),
-                    child: Stack(
-                      alignment: Alignment.bottomRight,
-                      children: [
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.primary,
-                              width: 2,
-                            ),
-                            color: Theme.of(context).cardColor,
-                            image: _getProfileImage(userProvider),
-                          ),
-                          child: _getProfileImage(userProvider) == null
-                              ? const Icon(
-                                  Icons.person,
-                                  size: 50,
-                                  color: AppColors.primary,
-                                )
-                              : null,
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ],
+                  Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Profile',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: textColor,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
-
-                  // Conditional Content based on User State
-                  if (user == null || userProvider.isGuest) ...[
-                    // --- GUEST UI ---
-                    Text(
-                      'You are using Expenser as a Guest',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.grey,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed('/login');
-                      },
-                      icon: const Icon(Icons.login_rounded),
-                      label: const Text('Login / Sign Up'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ] else ...[
-                    // --- LOGGED IN USER UI ---
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          userProvider.name.isEmpty
-                              ? 'User Name'
-                              : userProvider.name,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.edit_outlined,
-                            size: 20,
-                            color: AppColors.primary,
-                          ),
-                          onPressed: () =>
-                              _showEditProfileDialog(context, userProvider),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      userProvider.user?.email ??
-                          (userProvider.bio.isEmpty
-                              ? 'Bio goes here...'
-                              : userProvider.bio),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.grey,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
-
-            const SizedBox(height: 20),
-
-            // Menu Items
-            _ProfileMenuTile(
-              icon: Icons.category_outlined,
-              title: 'Categories',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const CategoryManagementScreen(),
-                ),
-              ),
-            ),
-
-            // Invite Friend
-            _ProfileMenuTile(
-              icon: Icons.person_add_alt_1_outlined,
-              title: 'Invite Friend',
-              onTap: () async {
-                final String appLink =
-                    'https://play.google.com/store/apps/details?id=com.kksystems.expenser';
-                final String text =
-                    'Hey! Track your daily expenses and take control of your finances with Expenser. Download it here: $appLink';
-
-                // Get the box to place the share dialog properly on iPad/tablets
-                final box = context.findRenderObject() as RenderBox?;
-
-                await Share.share(
-                  text,
-                  subject: 'Check out Expenser App!',
-                  sharePositionOrigin:
-                      box!.localToGlobal(Offset.zero) & box.size,
-                );
-              },
-            ),
-
-            // Privacy Policy
-            _ProfileMenuTile(
-              icon: Icons.privacy_tip_outlined,
-              title: 'Privacy Policy',
-              onTap: () async {
-                final Uri url = Uri.parse(
-                  'https://kksarang.github.io/expenser-Privacy-Policy/',
-                );
-                try {
-                  if (!await launchUrl(
-                    url,
-                    mode: LaunchMode.externalApplication,
-                  )) {
-                    throw Exception('Could not launch $url');
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Could not open Privacy Policy'),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    // User Avatar
+                    GestureDetector(
+                      onTap: () => _pickImage(context, userProvider),
+                      child: Container(
+                        width: 76,
+                        height: 76,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Theme.of(context).cardColor,
+                            width: 3,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                          color: Theme.of(context).cardColor,
+                          image: _getProfileImage(userProvider),
+                        ),
+                        child: _getProfileImage(userProvider) == null
+                            ? const Icon(
+                                Icons.person,
+                                size: 36,
+                                color: AppColors.primary,
+                              )
+                            : null,
                       ),
-                    );
-                  }
-                }
-              },
-            ),
+                    ),
+                    const SizedBox(height: 16),
 
-            // Rate this App
-            _ProfileMenuTile(
-              icon: Icons.star_outline_rounded,
-              title: 'Rate this App',
-              onTap: () => _showRatingConfirmation(context),
-            ),
+                    // Name, Email and Edit Button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user == null || userProvider.isGuest
+                                    ? 'Guest User'
+                                    : (userProvider.name.isEmpty
+                                          ? 'User Name'
+                                          : userProvider.name),
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: textColor,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                user == null || userProvider.isGuest
+                                    ? 'Not logged in'
+                                    : (userProvider.user?.email ??
+                                          (userProvider.bio.isEmpty
+                                              ? 'Bio goes here...'
+                                              : userProvider.bio)),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: isDark
+                                          ? Colors.grey[400]
+                                          : Colors.grey[600],
+                                      fontSize: 14,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (user == null || userProvider.isGuest)
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).pushNamed('/login');
+                            },
+                            icon: const Icon(Icons.login_rounded, size: 18),
+                            label: const Text('Login'),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: Size.zero,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          )
+                        else
+                          ElevatedButton.icon(
+                            onPressed: () =>
+                                _showEditProfileDialog(context, userProvider),
+                            icon: const Icon(Icons.edit_outlined, size: 16),
+                            label: const Text('Edit'),
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: Size.zero,
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
 
-            //    const SizedBox(height: 10),
+                    const SizedBox(height: 32),
 
-            // Logout (Only for Authenticated Users)
-            if (user != null && !userProvider.isGuest)
-              _ProfileMenuTile(
-                icon: Icons.logout_rounded,
-                title: 'Logout',
-                isDestructive: false,
-                onTap: () => _showLogoutConfirmation(context, userProvider),
-              ),
+                    // Group 1: Account & Utilities
+                    _ProfileMenuGroup(
+                      title: 'Account & Utilities',
+                      children: [
+                        Consumer<NotificationProvider>(
+                          builder: (context, provider, _) {
+                            return _ProfileMenuTile(
+                              icon: Icons.notifications_none_rounded,
+                              title: 'Notifications',
+                              trailing: provider.unreadCount > 0
+                                  ? Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        provider.unreadCount.toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )
+                                  : null,
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const NotificationScreen(),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        _ProfileMenuTile(
+                          icon: Icons.receipt_long_rounded,
+                          title: 'Your Wallet Bills',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const BillWalletScreen(),
+                            ),
+                          ),
+                        ),
+                        _ProfileMenuTile(
+                          icon: Icons.category_outlined,
+                          title: 'Categories',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const CategoryManagementScreen(),
+                            ),
+                          ),
+                        ),
+                        _ProfileMenuTile(
+                          icon: Icons.person_add_alt_1_outlined,
+                          title: 'Invite & Earn Rewards',
+                          onTap: () async {
+                            final String appLink =
+                                'https://play.google.com/store/apps/details?id=com.kksystems.expenser';
+                            final String text =
+                                'Hey! Track your daily expenses and take control of your finances with Expenser. Download it here: $appLink';
+                            final box =
+                                context.findRenderObject() as RenderBox?;
+                            await Share.share(
+                              text,
+                              subject: 'Check out Expenser App!',
+                              sharePositionOrigin:
+                                  box!.localToGlobal(Offset.zero) & box.size,
+                            );
+                          },
+                        ),
+                        Consumer<SettingsProvider>(
+                          builder: (context, settings, _) {
+                            return ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 4,
+                              ),
+                              leading: Icon(
+                                Icons.vibration_rounded,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white70
+                                    : Colors.black87,
+                                size: 24,
+                              ),
+                              title: Text(
+                                'Haptic Feedback',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                  color:
+                                      Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                              ),
+                              trailing: Switch.adaptive(
+                                value: settings.hapticEnabled,
+                                activeColor: AppColors.primary,
+                                onChanged: (val) => settings.toggleHaptic(val),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
 
-            // Delete Account (Only for Authenticated Users)
-            if (user != null && !userProvider.isGuest)
-              _ProfileMenuTile(
-                icon: Icons.delete_forever_rounded,
-                title: 'Delete Account',
-                isDestructive: true,
-                onTap: () =>
-                    _showDeleteAccountConfirmation(context, userProvider),
-              ),
+                    // Group 2: Support (and Admin)
+                    _ProfileMenuGroup(
+                      title: 'Support',
+                      children: [
+                        _ProfileMenuTile(
+                          icon: Icons.privacy_tip_outlined,
+                          title: 'Privacy Policy',
+                          onTap: () async {
+                            final Uri url = Uri.parse(
+                              'https://kksarang.github.io/expenser-Privacy-Policy/',
+                            );
+                            try {
+                              if (!await launchUrl(
+                                url,
+                                mode: LaunchMode.externalApplication,
+                              )) {
+                                throw Exception('Could not launch $url');
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Could not open Privacy Policy',
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                        _ProfileMenuTile(
+                          icon: Icons.star_outline_rounded,
+                          title: 'Rate this App',
+                          onTap: () => _showRatingConfirmation(context),
+                        ),
+                        if (user != null && !userProvider.isGuest)
+                          _ProfileMenuTile(
+                            icon: Icons.logout_rounded,
+                            title: 'Logout',
+                            isDestructive: false,
+                            onTap: () =>
+                                _showLogoutConfirmation(context, userProvider),
+                          ),
+                        if (user != null && !userProvider.isGuest)
+                          _ProfileMenuTile(
+                            icon: Icons.delete_forever_rounded,
+                            title: 'Delete Account',
+                            isDestructive: true,
+                            onTap: () => _showDeleteAccountConfirmation(
+                              context,
+                              userProvider,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
 
-            const SizedBox(height: 8),
-
-            // Footer
-            Center(
-              child: InkWell(
-                onTap: () async {
-                  final Uri url = Uri.parse('https://sarangrajan.in/kksystems');
-                  if (!await launchUrl(
-                    url,
-                    mode: LaunchMode.externalApplication,
-                  )) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Could not open link')),
-                      );
-                    }
-                  }
-                },
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.bolt_rounded,
-                        size: 16,
-                        color: const Color.fromARGB(255, 95, 28, 0),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Powered by kksystems',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: const Color.fromARGB(255, 95, 28, 0),
-                          fontWeight: FontWeight.w500,
+                    // Footer
+                    InkWell(
+                      onTap: () async {
+                        final Uri url = Uri.parse(
+                          'https://sarangrajan.in/kksystems',
+                        );
+                        if (!await launchUrl(
+                          url,
+                          mode: LaunchMode.externalApplication,
+                        )) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Could not open link'),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.bolt_rounded,
+                              size: 16,
+                              color: const Color.fromARGB(255, 95, 28, 0),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Powered by kksystems',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: const Color.fromARGB(255, 95, 28, 0),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ), // closing Center
+                    const SizedBox(height: 16),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 34),
+
+            //   const SizedBox(height: 30),
           ],
         ),
       ),
@@ -351,9 +473,9 @@ class ProfileScreen extends StatelessWidget {
         title: 'Edit Profile',
         icon: Icons.edit_note_rounded,
         primaryButtonText: 'Save',
-        onPrimaryPressed: () {
-          provider.updateProfile(nameController.text, bioController.text);
-          Navigator.pop(context);
+        onPrimaryPressed: () async {
+          await provider.updateProfile(nameController.text, bioController.text);
+          if (context.mounted) Navigator.pop(context);
         },
         content: Column(
           children: [
@@ -572,74 +694,121 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
+class _ProfileMenuGroup extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _ProfileMenuGroup({required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8, bottom: 12),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.grey[400] : Colors.grey[800],
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              if (!isDark)
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+            ],
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.grey.withOpacity(0.1),
+            ),
+          ),
+          child: Column(
+            children: children.asMap().entries.map((entry) {
+              final index = entry.key;
+              final child = entry.value;
+              final isLast = index == children.length - 1;
+              return Column(
+                children: [
+                  child,
+                  if (!isLast)
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      indent: 52,
+                      endIndent: 16,
+                      color: isDark
+                          ? Colors.white12
+                          : Colors.grey.withOpacity(0.1),
+                    ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ProfileMenuTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final VoidCallback onTap;
   final bool isDestructive;
-  // final Widget? trailing; // Removed unused parameter
+  final Widget? trailing;
 
   const _ProfileMenuTile({
     required this.icon,
     required this.title,
     required this.onTap,
     this.isDestructive = false,
-    // this.trailing,
+    this.trailing,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-        ],
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withOpacity(0.1)
-              : AppColors.lightGrey.withOpacity(0.5),
+    return ListTile(
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      leading: Icon(
+        icon,
+        color: isDestructive
+            ? Colors.red
+            : (isDark ? Colors.white70 : Colors.black87),
+        size: 24,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          color: isDestructive
+              ? Colors.red
+              : (isDark ? Colors.white : Colors.black87),
         ),
       ),
-      child: ListTile(
-        onTap: onTap,
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: isDestructive
-                ? Colors.red.withOpacity(0.1)
-                : AppColors.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+      trailing:
+          trailing ??
+          Icon(
+            Icons.chevron_right_rounded,
+            color: isDark ? Colors.white30 : Colors.grey.withOpacity(0.6),
+            size: 20,
           ),
-          child: Icon(
-            icon,
-            color: isDestructive ? Colors.red : AppColors.primary,
-          ),
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            color: isDestructive
-                ? Colors.red
-                : Theme.of(context).textTheme.bodyLarge?.color,
-          ),
-        ),
-        trailing: Icon(
-          Icons.chevron_right_rounded,
-          color: isDark ? Colors.white54 : AppColors.grey,
-        ),
-      ),
     );
   }
 }

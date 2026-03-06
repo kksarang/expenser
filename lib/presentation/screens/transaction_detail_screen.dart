@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/services/haptic_service.dart';
 import '../../core/utils/responsive.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
@@ -453,31 +454,34 @@ class TransactionDetailScreen extends StatelessWidget {
         iconColor: Colors.red,
         isDestructive: true,
         primaryButtonText: 'Delete',
-        onPrimaryPressed: () {
+        onPrimaryPressed: () async {
           Navigator.pop(dialogContext); // Close dialog
           final provider = Provider.of<TransactionProvider>(
             context,
             listen: false,
           );
           final deleted = transaction;
-          provider.deleteTransaction(transaction.id);
+          await provider.deleteTransaction(transaction.id);
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Transaction deleted'),
-              action: SnackBarAction(
-                label: 'Undo',
-                onPressed: () {
-                  Provider.of<TransactionProvider>(
-                    context,
-                    listen: false,
-                  ).addTransaction(deleted);
-                },
+          if (context.mounted) {
+            HapticService.triggerMedium(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Transaction deleted'),
+                action: SnackBarAction(
+                  label: 'Undo',
+                  onPressed: () {
+                    Provider.of<TransactionProvider>(
+                      context,
+                      listen: false,
+                    ).addTransaction(deleted);
+                  },
+                ),
               ),
-            ),
-          );
+            );
 
-          Navigator.pop(context); // Go back to home screen
+            Navigator.pop(context); // Go back to home screen
+          }
         },
       ),
     );

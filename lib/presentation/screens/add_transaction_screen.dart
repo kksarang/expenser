@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/services/haptic_service.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../providers/transaction_provider.dart';
@@ -36,6 +37,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   DateTime _selectedDate = DateTime.now();
 
   String _selectedAccount = 'Cash'; // unified account selection
+  bool _isLoading = false;
   final _payeeController = TextEditingController();
   final _referenceController = TextEditingController();
 
@@ -44,10 +46,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     'Cash',
     'Card',
     'Bank',
+    'Cheque',
     'GPay',
     'PhonePe',
     'Paytm',
     'CRED',
+    'Other Upi Apps',
   ];
 
   // Icon for each account option
@@ -59,14 +63,19 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         return Icons.credit_card_rounded;
       case 'Bank':
         return Icons.account_balance_rounded;
+      case 'Cheque':
+        return Icons.account_balance_rounded;
       case 'GPay':
         return Icons.g_mobiledata_rounded;
       case 'PhonePe':
         return Icons.phone_android_rounded;
       case 'Paytm':
         return Icons.account_balance_wallet_rounded;
+
       case 'CRED':
         return Icons.diamond_rounded;
+      case 'Other Upi Apps':
+        return Icons.account_balance_wallet_rounded;
       default:
         return Icons.account_balance_wallet_rounded;
     }
@@ -239,7 +248,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               ),
             ),
 
-            const Spacer(flex: 1),
+            //const Spacer(flex: 1),
 
             // Amount Input (Giant)
             Padding(
@@ -247,6 +256,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SizedBox(height: responsiveHeight * 0.04),
                   Text(
                     'How much?',
                     style: TextStyle(
@@ -323,301 +333,357 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     topLeft: Radius.circular(32),
                     topRight: Radius.circular(32),
                   ),
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.all(responsiveWidth * 0.06),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Type Selector
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: AppColors.lightGrey,
-                            borderRadius: BorderRadius.circular(16),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.only(
+                            left: responsiveWidth * 0.06,
+                            right: responsiveWidth * 0.06,
+                            top: responsiveWidth * 0.06,
+                            bottom: 16,
                           ),
-                          child: Row(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Expanded(
-                                child: _buildTypeOption(
-                                  'Expense',
-                                  TransactionType.expense,
+                              // Type Selector
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.lightGrey,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildTypeOption(
+                                        'Expense',
+                                        TransactionType.expense,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: _buildTypeOption(
+                                        'Income',
+                                        TransactionType.income,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Expanded(
-                                child: _buildTypeOption(
-                                  'Income',
-                                  TransactionType.income,
+                              const SizedBox(height: 24),
+
+                              // Category Selector
+                              GestureDetector(
+                                onTap: _showCategoryBottomSheet,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: AppColors.lightGrey,
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          if (_selectedCategory != null)
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                right: 12,
+                                              ),
+                                              child: Icon(
+                                                IconData(
+                                                  _selectedCategory!
+                                                      .iconCodePoint,
+                                                  fontFamily: 'MaterialIcons',
+                                                ),
+                                                color: Color(
+                                                  _selectedCategory!.colorValue,
+                                                ),
+                                              ),
+                                            ),
+                                          Text(
+                                            _selectedCategory?.name ??
+                                                'Select Category',
+                                            style: TextStyle(
+                                              fontSize: Responsive.fontSize(
+                                                context,
+                                                16,
+                                              ),
+                                              color: _selectedCategory == null
+                                                  ? AppColors.grey
+                                                  : Colors.black,
+                                              fontWeight:
+                                                  _selectedCategory == null
+                                                  ? FontWeight.normal
+                                                  : FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const Icon(
+                                        Icons.keyboard_arrow_down,
+                                        color: AppColors.grey,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Description
+                              TextField(
+                                controller: _noteController,
+                                decoration: InputDecoration(
+                                  hintText: 'Description',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(
+                                      color: AppColors.lightGrey,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(
+                                      color: AppColors.lightGrey,
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 16,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // ── Account (replaces Payment Method + old Account dropdown) ──
+                              _buildSectionHeader('Payment Method'),
+                              const SizedBox(height: 10),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: _accountOptions.map((option) {
+                                  final isSelected = _selectedAccount == option;
+                                  return GestureDetector(
+                                    onTap: () => setState(
+                                      () => _selectedAccount = option,
+                                    ),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(
+                                        milliseconds: 200,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 10,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? AppColors.primary.withOpacity(
+                                                0.12,
+                                              )
+                                            : Colors.white,
+                                        borderRadius: BorderRadius.circular(24),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? AppColors.primary
+                                              : AppColors.lightGrey,
+                                          width: isSelected ? 1.5 : 1,
+                                        ),
+                                        boxShadow: isSelected
+                                            ? [
+                                                BoxShadow(
+                                                  color: AppColors.primary
+                                                      .withOpacity(0.15),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ]
+                                            : [],
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            _accountIcon(option),
+                                            size: 16,
+                                            color: isSelected
+                                                ? AppColors.primary
+                                                : AppColors.grey,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            option,
+                                            style: TextStyle(
+                                              fontSize: Responsive.fontSize(
+                                                context,
+                                                13,
+                                              ),
+                                              fontWeight: isSelected
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                              color: isSelected
+                                                  ? AppColors.primary
+                                                  : Colors.black87,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Optional Details Expansion
+                              // ExpansionTile(
+                              //   title: Text(
+                              //     "More Details (Optional)",
+                              //     style: TextStyle(
+                              //       fontSize: Responsive.fontSize(context, 14),
+                              //       fontWeight: FontWeight.bold,
+                              //       color: Colors.grey,
+                              //     ),
+                              //   ),
+                              //   tilePadding: EdgeInsets.zero,
+                              //   children: [
+                              //     TextField(
+                              //       controller: _payeeController,
+                              //       decoration: InputDecoration(
+                              //         labelText:
+                              //             _selectedType == TransactionType.expense
+                              //             ? 'Payee / Merchant'
+                              //             : 'Payer / Source',
+                              //         border: OutlineInputBorder(
+                              //           borderRadius: BorderRadius.circular(16),
+                              //         ),
+                              //       ),
+                              //     ),
+                              //     const SizedBox(height: 12),
+                              //     TextField(
+                              //       controller: _referenceController,
+                              //       decoration: InputDecoration(
+                              //         labelText: 'Reference No.',
+                              //         border: OutlineInputBorder(
+                              //           borderRadius: BorderRadius.circular(16),
+                              //         ),
+                              //       ),
+                              //     ),
+                              //   ],
+                              // ),
+                              // const SizedBox(height: 16),
+
+                              // Date Picker
+                              GestureDetector(
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: _selectedDate,
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime(2100),
+                                  );
+                                  if (picked != null)
+                                    setState(() => _selectedDate = picked);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: AppColors.lightGrey,
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(
+                                        Icons.calendar_today,
+                                        size: 18,
+                                        color: AppColors.grey,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        DateFormat(
+                                          'dd MMM yyyy',
+                                        ).format(_selectedDate),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 24),
-
-                        // Category Selector
-                        GestureDetector(
-                          onTap: _showCategoryBottomSheet,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.lightGrey),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    if (_selectedCategory != null)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 12,
-                                        ),
-                                        child: Icon(
-                                          IconData(
-                                            _selectedCategory!.iconCodePoint,
-                                            fontFamily: 'MaterialIcons',
-                                          ),
-                                          color: Color(
-                                            _selectedCategory!.colorValue,
-                                          ),
-                                        ),
-                                      ),
-                                    Text(
-                                      _selectedCategory?.name ??
-                                          'Select Category',
-                                      style: TextStyle(
-                                        fontSize: Responsive.fontSize(
-                                          context,
-                                          16,
-                                        ),
-                                        color: _selectedCategory == null
-                                            ? AppColors.grey
-                                            : Colors.black,
-                                        fontWeight: _selectedCategory == null
-                                            ? FontWeight.normal
-                                            : FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const Icon(
-                                  Icons.keyboard_arrow_down,
-                                  color: AppColors.grey,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Description
-                        TextField(
-                          controller: _noteController,
-                          decoration: InputDecoration(
-                            hintText: 'Description',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(
-                                color: AppColors.lightGrey,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide(
-                                color: AppColors.lightGrey,
-                              ),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // ── Account (replaces Payment Method + old Account dropdown) ──
-                        _buildSectionHeader('Payment Method'),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: _accountOptions.map((option) {
-                            final isSelected = _selectedAccount == option;
-                            return GestureDetector(
-                              onTap: () =>
-                                  setState(() => _selectedAccount = option),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? AppColors.primary.withOpacity(0.12)
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(24),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? AppColors.primary
-                                        : AppColors.lightGrey,
-                                    width: isSelected ? 1.5 : 1,
-                                  ),
-                                  boxShadow: isSelected
-                                      ? [
-                                          BoxShadow(
-                                            color: AppColors.primary
-                                                .withOpacity(0.15),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ]
-                                      : [],
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      _accountIcon(option),
-                                      size: 16,
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : AppColors.grey,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      option,
-                                      style: TextStyle(
-                                        fontSize: Responsive.fontSize(
-                                          context,
-                                          13,
-                                        ),
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                        color: isSelected
-                                            ? AppColors.primary
-                                            : Colors.black87,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Optional Details Expansion
-                        ExpansionTile(
-                          title: Text(
-                            "More Details (Optional)",
-                            style: TextStyle(
-                              fontSize: Responsive.fontSize(context, 14),
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          tilePadding: EdgeInsets.zero,
-                          children: [
-                            TextField(
-                              controller: _payeeController,
-                              decoration: InputDecoration(
-                                labelText:
-                                    _selectedType == TransactionType.expense
-                                    ? 'Payee / Merchant'
-                                    : 'Payer / Source',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: _referenceController,
-                              decoration: InputDecoration(
-                                labelText: 'Reference No.',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
+                      ),
+                      // Sticky Save Button
+                      Container(
+                        padding: EdgeInsets.all(responsiveWidth * 0.06),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, -4),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-
-                        // Date Picker
-                        GestureDetector(
-                          onTap: () async {
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: _selectedDate,
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime(2100),
-                            );
-                            if (picked != null)
-                              setState(() => _selectedDate = picked);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: AppColors.lightGrey),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.calendar_today,
-                                  size: 18,
-                                  color: AppColors.grey,
+                        child: SafeArea(
+                          top: false,
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _saveTransaction,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: AppColors.primary
+                                    .withOpacity(0.6),
+                                disabledForegroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                  vertical: isSmall ? 14 : 16,
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  DateFormat(
-                                    'dd MMM yyyy',
-                                  ).format(_selectedDate),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                              ],
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      height: 24,
+                                      width: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                  : Text(
+                                      'Save',
+                                      style: TextStyle(
+                                        fontSize: Responsive.fontSize(
+                                          context,
+                                          18,
+                                        ),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
-
-                        // Save Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _saveTransaction,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(
-                                vertical: isSmall ? 14 : 16,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: Text(
-                              'Save',
-                              style: TextStyle(
-                                fontSize: Responsive.fontSize(context, 18),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -675,6 +741,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           : _referenceController.text,
     );
 
+    setState(() => _isLoading = true);
+
     try {
       // Check connectivity
       final connectivityResult = await Connectivity().checkConnectivity();
@@ -692,6 +760,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       }
 
       if (mounted) {
+        HapticService.triggerLight(context);
         Navigator.pop(context);
 
         if (isOffline) {
@@ -714,6 +783,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 }

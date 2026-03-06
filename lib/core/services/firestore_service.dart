@@ -19,6 +19,21 @@ class FirestoreService {
     return _usersCollection().doc(userId).collection('transactions');
   }
 
+  // --- User Profile ---
+
+  Future<void> saveUserProfile({
+    required String userId,
+    required String name,
+    required String email,
+  }) async {
+    await _usersCollection().doc(userId).set({
+      'name': name,
+      'email': email,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
   // --- Transactions ---
 
   Future<void> saveTransaction(

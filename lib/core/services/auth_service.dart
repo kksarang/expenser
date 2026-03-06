@@ -102,6 +102,31 @@ class AuthService {
     }
   }
 
+  // Create account with Email and Password
+  Future<UserCredential?> createUserWithEmailAndPassword(
+    String email,
+    String password,
+    String displayName,
+  ) async {
+    final auth = _auth;
+    if (auth == null) {
+      throw Exception("Firebase not initialized.");
+    }
+    try {
+      final credential = await auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      // Set display name
+      await credential.user?.updateDisplayName(displayName);
+      await credential.user?.reload();
+      return credential;
+    } catch (e) {
+      print('Error creating account: $e');
+      rethrow;
+    }
+  }
+
   // Sign out
   Future<void> signOut() async {
     await _googleSignIn.signOut();

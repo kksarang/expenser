@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Added
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Added
 import 'package:provider/provider.dart';
 import 'presentation/providers/transaction_provider.dart';
 import 'presentation/providers/category_provider.dart';
 import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/theme_provider.dart';
+import 'presentation/providers/bill_provider.dart'; // Added
+import 'presentation/providers/settings_provider.dart';
+import 'presentation/providers/notification_provider.dart';
 // import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/main_screen.dart';
 import 'presentation/screens/onboarding_screen.dart';
 import 'presentation/screens/login_screen.dart';
+import 'presentation/screens/signup_screen.dart';
 import 'core/constants/app_colors.dart';
 import 'core/theme/app_theme.dart';
 
@@ -20,6 +25,12 @@ import 'presentation/widgets/auth_wrapper.dart'; // Added import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    print("Could not load .env file: $e");
+  }
+
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -48,6 +59,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => BillProvider()), // Added
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
@@ -86,6 +100,7 @@ class MyApp extends StatelessWidget {
               '/home': (context) => const MainScreen(),
               '/onboarding': (context) => const OnboardingScreen(),
               '/login': (context) => const LoginScreen(),
+              '/signup': (context) => const SignUpScreen(),
             },
           );
         },

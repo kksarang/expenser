@@ -82,6 +82,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(
+            Icons.close,
+            color: Color.fromARGB(255, 255, 255, 255),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           'Analytics',
           style: TextStyle(
@@ -256,7 +263,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 );
               }, childCount: sortedCategoryIds.length),
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 30)),
+            const SliverToBoxAdapter(child: SizedBox(height: 90)),
+            //SizedBox(height: 16), //
           ],
         ],
       ),

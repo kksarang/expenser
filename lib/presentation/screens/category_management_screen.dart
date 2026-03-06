@@ -111,9 +111,9 @@ class CategoryManagementScreen extends StatelessWidget {
         iconColor: Colors.red,
         isDestructive: true,
         primaryButtonText: 'Delete',
-        onPrimaryPressed: () {
-          provider.deleteCategory(id);
-          Navigator.pop(context);
+        onPrimaryPressed: () async {
+          await provider.deleteCategory(id);
+          if (context.mounted) Navigator.pop(context);
         },
       ),
     );
