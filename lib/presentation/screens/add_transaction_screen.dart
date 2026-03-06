@@ -514,42 +514,42 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         const SizedBox(height: 16),
 
                         // Optional Details Expansion
-                        ExpansionTile(
-                          title: Text(
-                            "More Details (Optional)",
-                            style: TextStyle(
-                              fontSize: Responsive.fontSize(context, 14),
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          tilePadding: EdgeInsets.zero,
-                          children: [
-                            TextField(
-                              controller: _payeeController,
-                              decoration: InputDecoration(
-                                labelText:
-                                    _selectedType == TransactionType.expense
-                                    ? 'Payee / Merchant'
-                                    : 'Payer / Source',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: _referenceController,
-                              decoration: InputDecoration(
-                                labelText: 'Reference No.',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
+                        // ExpansionTile(
+                        //   title: Text(
+                        //     "More Details (Optional)",
+                        //     style: TextStyle(
+                        //       fontSize: Responsive.fontSize(context, 14),
+                        //       fontWeight: FontWeight.bold,
+                        //       color: Colors.grey,
+                        //     ),
+                        //   ),
+                        //   tilePadding: EdgeInsets.zero,
+                        //   children: [
+                        //     TextField(
+                        //       controller: _payeeController,
+                        //       decoration: InputDecoration(
+                        //         labelText:
+                        //             _selectedType == TransactionType.expense
+                        //             ? 'Payee / Merchant'
+                        //             : 'Payer / Source',
+                        //         border: OutlineInputBorder(
+                        //           borderRadius: BorderRadius.circular(16),
+                        //         ),
+                        //       ),
+                        //     ),
+                        //     const SizedBox(height: 12),
+                        //     TextField(
+                        //       controller: _referenceController,
+                        //       decoration: InputDecoration(
+                        //         labelText: 'Reference No.',
+                        //         border: OutlineInputBorder(
+                        //           borderRadius: BorderRadius.circular(16),
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
+                        // const SizedBox(height: 16),
 
                         // Date Picker
                         GestureDetector(
@@ -600,7 +600,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
-                              disabledBackgroundColor: AppColors.primary.withOpacity(0.6),
+                              disabledBackgroundColor: AppColors.primary
+                                  .withOpacity(0.6),
                               disabledForegroundColor: Colors.white,
                               padding: EdgeInsets.symmetric(
                                 vertical: isSmall ? 14 : 16,
@@ -609,22 +610,27 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: _isLoading 
-                              ? const SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : Text(
+                                    'Save',
+                                    style: TextStyle(
+                                      fontSize: Responsive.fontSize(
+                                        context,
+                                        18,
+                                      ),
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                )
-                              : Text(
-                                  'Save',
-                                  style: TextStyle(
-                                    fontSize: Responsive.fontSize(context, 18),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -688,7 +694,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
 
     setState(() => _isLoading = true);
-    
+
     try {
       // Check connectivity
       final connectivityResult = await Connectivity().checkConnectivity();
