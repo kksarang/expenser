@@ -87,6 +87,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   bool _initializedFromExisting = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -595,10 +596,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _saveTransaction,
+                            onPressed: _isLoading ? null : _saveTransaction,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
+                              disabledBackgroundColor: AppColors.primary.withOpacity(0.6),
+                              disabledForegroundColor: Colors.white,
                               padding: EdgeInsets.symmetric(
                                 vertical: isSmall ? 14 : 16,
                               ),
@@ -606,13 +609,22 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: Text(
-                              'Save',
-                              style: TextStyle(
-                                fontSize: Responsive.fontSize(context, 18),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            child: _isLoading 
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : Text(
+                                  'Save',
+                                  style: TextStyle(
+                                    fontSize: Responsive.fontSize(context, 18),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -675,6 +687,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           : _referenceController.text,
     );
 
+    setState(() => _isLoading = true);
+    
     try {
       // Check connectivity
       final connectivityResult = await Connectivity().checkConnectivity();
@@ -714,6 +728,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 }

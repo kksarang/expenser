@@ -22,8 +22,6 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDark = themeProvider.isDarkMode;
     final user = userProvider.user;
 
     return Scaffold(
@@ -351,9 +349,9 @@ class ProfileScreen extends StatelessWidget {
         title: 'Edit Profile',
         icon: Icons.edit_note_rounded,
         primaryButtonText: 'Save',
-        onPrimaryPressed: () {
-          provider.updateProfile(nameController.text, bioController.text);
-          Navigator.pop(context);
+        onPrimaryPressed: () async {
+          await provider.updateProfile(nameController.text, bioController.text);
+          if (context.mounted) Navigator.pop(context);
         },
         content: Column(
           children: [

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive.dart';
 
-class CustomDialog extends StatelessWidget {
+class CustomDialog extends StatefulWidget {
   final String title;
   final String? description;
   final Widget? content;
   final String primaryButtonText;
   final String secondaryButtonText;
-  final VoidCallback onPrimaryPressed;
+  final Future<void> Function() onPrimaryPressed;
   final VoidCallback? onSecondaryPressed;
   final IconData? icon;
   final Color? iconColor;
@@ -29,6 +29,26 @@ class CustomDialog extends StatelessWidget {
   });
 
   @override
+  State<CustomDialog> createState() => _CustomDialogState();
+}
+
+class _CustomDialogState extends State<CustomDialog> {
+  bool _isLoading = false;
+
+  void _handlePrimaryPress() async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+    
+    try {
+      await widget.onPrimaryPressed();
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final responsiveWidth = Responsive.width(context);
 
@@ -47,35 +67,35 @@ class CustomDialog extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (icon != null) ...[
+                  if (widget.icon != null) ...[
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: (iconColor ?? AppColors.primary).withOpacity(
+                        color: (widget.iconColor ?? AppColors.primary).withOpacity(
                           0.1,
                         ),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        icon,
-                        color: iconColor ?? AppColors.primary,
+                        widget.icon,
+                        color: widget.iconColor ?? AppColors.primary,
                         size: Responsive.fontSize(context, 32),
                       ),
                     ),
                     const SizedBox(height: 16),
                   ],
                   Text(
-                    title,
+                    widget.title,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       fontSize: Responsive.fontSize(context, 20),
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  if (description != null) ...[
+                  if (widget.description != null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      description!,
+                      widget.description!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Colors.grey,
                         fontSize: Responsive.fontSize(context, 14),
@@ -83,18 +103,18 @@ class CustomDialog extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                   ],
-                  if (content != null) ...[
+                  if (widget.content != null) ...[
                     const SizedBox(height: 16),
-                    content!,
+                    widget.content!,
                   ],
                   const SizedBox(height: 24),
                   Row(
                     children: [
                       Expanded(
                         child: TextButton(
-                          onPressed:
-                              onSecondaryPressed ??
-                              () => Navigator.pop(context),
+                          onPressed: _isLoading 
+                              ? null 
+                              : (widget.onSecondaryPressed ?? () => Navigator.pop(context)),
                           style: TextButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
@@ -102,11 +122,11 @@ class CustomDialog extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            secondaryButtonText,
+                            widget.secondaryButtonText,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: Responsive.fontSize(context, 16),
-                              color: Colors.grey,
+                              color: _isLoading ? Colors.grey.withOpacity(0.5) : Colors.grey,
                             ),
                           ),
                         ),
@@ -114,25 +134,37 @@ class CustomDialog extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
-                          onPressed: onPrimaryPressed,
+                          onPressed: _isLoading ? null : _handlePrimaryPress,
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            backgroundColor: isDestructive
+                            backgroundColor: widget.isDestructive
                                 ? Colors.red
                                 : AppColors.primary,
                             foregroundColor: Colors.white,
+                            disabledBackgroundColor: (widget.isDestructive
+                                ? Colors.red
+                                : AppColors.primary).withOpacity(0.6),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          child: Text(
-                            primaryButtonText,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: Responsive.fontSize(context, 16),
-                            ),
-                          ),
+                          child: _isLoading 
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Text(
+                                widget.primaryButtonText,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: Responsive.fontSize(context, 16),
+                                ),
+                              ),
                         ),
                       ),
                     ],
@@ -140,17 +172,19 @@ class CustomDialog extends StatelessWidget {
                 ],
               ),
             ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.grey),
-                onPressed: () => Navigator.pop(context),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                splashRadius: 20,
+            if (!_isLoading) ...[
+              Positioned(
+                right: 8,
+                top: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.grey),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  splashRadius: 20,
+                ),
               ),
-            ),
+            ]
           ],
         ),
       ),

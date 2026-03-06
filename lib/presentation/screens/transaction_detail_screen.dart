@@ -453,31 +453,33 @@ class TransactionDetailScreen extends StatelessWidget {
         iconColor: Colors.red,
         isDestructive: true,
         primaryButtonText: 'Delete',
-        onPrimaryPressed: () {
+        onPrimaryPressed: () async {
           Navigator.pop(dialogContext); // Close dialog
           final provider = Provider.of<TransactionProvider>(
             context,
             listen: false,
           );
           final deleted = transaction;
-          provider.deleteTransaction(transaction.id);
+          await provider.deleteTransaction(transaction.id);
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Transaction deleted'),
-              action: SnackBarAction(
-                label: 'Undo',
-                onPressed: () {
-                  Provider.of<TransactionProvider>(
-                    context,
-                    listen: false,
-                  ).addTransaction(deleted);
-                },
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Transaction deleted'),
+                action: SnackBarAction(
+                  label: 'Undo',
+                  onPressed: () {
+                    Provider.of<TransactionProvider>(
+                      context,
+                      listen: false,
+                    ).addTransaction(deleted);
+                  },
+                ),
               ),
-            ),
-          );
+            );
 
-          Navigator.pop(context); // Go back to home screen
+            Navigator.pop(context); // Go back to home screen
+          }
         },
       ),
     );

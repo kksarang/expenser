@@ -21,6 +21,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
   late TransactionType _selectedType;
   late int _selectedIconCode;
   late Color _selectedColor;
+  bool _isLoading = false;
 
   final List<Color> _colors = [
     const Color(0xFFFD3C4A), // Red
@@ -61,25 +62,32 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
     super.dispose();
   }
 
-  void _save() {
-    if (_nameController.text.trim().isEmpty) return;
+  void _save() async {
+    if (_nameController.text.trim().isEmpty || _isLoading) return;
 
-    final provider = Provider.of<CategoryProvider>(context, listen: false);
-    final category = CategoryEntity(
-      id: widget.initialCategory?.id ?? const Uuid().v4(),
-      name: _nameController.text.trim(),
-      iconCodePoint: _selectedIconCode,
-      colorValue: _selectedColor.value,
-      type: _selectedType,
-      isCustom: true,
-    );
+    setState(() => _isLoading = true);
+    try {
+      final provider = Provider.of<CategoryProvider>(context, listen: false);
+      final category = CategoryEntity(
+        id: widget.initialCategory?.id ?? const Uuid().v4(),
+        name: _nameController.text.trim(),
+        iconCodePoint: _selectedIconCode,
+        colorValue: _selectedColor.value,
+        type: _selectedType,
+        isCustom: true,
+      );
 
-    if (widget.initialCategory != null) {
-      provider.updateCategory(category);
-    } else {
-      provider.addCategory(category);
+      if (widget.initialCategory != null) {
+        await provider.updateCategory(category);
+      } else {
+        await provider.addCategory(category);
+      }
+      if (mounted) Navigator.pop(context);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
-    Navigator.pop(context);
   }
 
   @override
@@ -269,7 +277,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: _save,
+                  onPressed: _isLoading ? null : _save,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
@@ -277,14 +285,23 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: Text(
-                    isEditing ? 'Save Changes' : 'Create Category',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: _isLoading 
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Text(
+                        isEditing ? 'Save Changes' : 'Create Category',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                 ),
               ),
             ),

@@ -408,6 +408,16 @@ class _InsightsScreenState extends State<InsightsScreen> {
               );
             }).toList(),
           ),
+        ],
+      ),
+    );
+  }
+
+  // ==== INSIGHTS & ADVICE ====
+
+  Widget _buildSmartInsights(
+    List<TransactionEntity> txs,
+    CategoryProvider catProv,
     bool isIncome,
   ) {
     // Generate some mock AI strings based on real data
