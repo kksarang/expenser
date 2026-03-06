@@ -240,7 +240,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               ),
             ),
 
-            const Spacer(flex: 1),
+            // const Spacer(flex: 1),
 
             // Amount Input (Giant)
             Padding(
@@ -248,6 +248,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SizedBox(height: responsiveHeight * 0.04),
                   Text(
                     'How much?',
                     style: TextStyle(
