@@ -7,28 +7,33 @@ import '../../core/utils/responsive.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/custom_snackbar.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignUpScreenState extends State<SignUpScreen> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -36,18 +41,21 @@ class _LoginScreenState extends State<LoginScreen> {
       await Provider.of<UserProvider>(
         context,
         listen: false,
-      ).loginWithEmail(_emailController.text, _passwordController.text);
+      ).signUpWithEmail(
+        _nameController.text.trim(),
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
-        _passwordController.clear();
         _showAuthError(context, e.code);
       }
     } catch (e) {
       if (mounted) {
-        _showErrorSnackbar(context, 'Login failed. Please try again.');
+        _showErrorSnackbar(context, 'Sign up failed. Please try again.');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -76,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        _showErrorSnackbar(context, 'Google Login Failed: $e');
+        _showErrorSnackbar(context, 'Google Sign Up Failed: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -86,17 +94,14 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showAuthError(BuildContext context, String code) {
     String message;
     switch (code) {
-      case 'wrong-password':
-        message = 'Incorrect password. Please try again.';
+      case 'email-already-in-use':
+        message = 'An account already exists with this email.';
         break;
-      case 'user-not-found':
-        message = 'No account found with this email.';
+      case 'weak-password':
+        message = 'Password is too weak. Use at least 6 characters.';
         break;
       case 'invalid-email':
         message = 'Please enter a valid email address.';
-        break;
-      case 'invalid-credential':
-        message = 'Incorrect email or password.';
         break;
       case 'too-many-requests':
         message = 'Too many attempts. Please try again later.';
@@ -105,13 +110,54 @@ class _LoginScreenState extends State<LoginScreen> {
         message = 'No internet connection. Please try again.';
         break;
       default:
-        message = 'Login failed. Please try again.';
+        message = 'Sign up failed. Please try again.';
     }
     _showErrorSnackbar(context, message);
   }
 
   void _showErrorSnackbar(BuildContext context, String message) {
     CustomSnackBar.showError(context, message);
+  }
+
+  InputDecoration _buildInputDecoration({
+    required String hintText,
+    required bool isSmall,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: GoogleFonts.inter(
+        fontSize: Responsive.fontSize(context, 14),
+        color: const Color(0xFFBBBBCC),
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: 18,
+        vertical: isSmall ? 14 : 18,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFFE8E8F0), width: 1.5),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFFE8E8F0), width: 1.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.expense, width: 1.5),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.expense, width: 1.5),
+      ),
+      suffixIcon: suffixIcon,
+    );
   }
 
   @override
@@ -123,20 +169,18 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: responsiveWidth * 0.06),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: responsiveHeight * 0.02),
-
-                SizedBox(height: responsiveHeight * 0.099),
+                SizedBox(height: responsiveHeight * 0.06),
 
                 // Title
                 Text(
-                  'Welcome Back!',
+                  'Create Account',
                   style: GoogleFonts.inter(
                     fontSize: Responsive.fontSize(context, 28),
                     fontWeight: FontWeight.w800,
@@ -146,7 +190,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 SizedBox(height: responsiveHeight * 0.02),
                 Text(
-                  'Log into your verified profile to access',
+                  'Sign up to get started with your account',
                   style: GoogleFonts.inter(
                     fontSize: Responsive.fontSize(context, 14),
                     fontWeight: FontWeight.w400,
@@ -154,7 +198,40 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                SizedBox(height: responsiveHeight * 0.05),
+                SizedBox(height: responsiveHeight * 0.04),
+
+                // Name label
+                Text(
+                  'Name',
+                  style: GoogleFonts.inter(
+                    fontSize: Responsive.fontSize(context, 14),
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Name Field
+                TextFormField(
+                  controller: _nameController,
+                  textCapitalization: TextCapitalization.words,
+                  style: GoogleFonts.inter(
+                    fontSize: Responsive.fontSize(context, 15),
+                    color: Colors.black87,
+                  ),
+                  decoration: _buildInputDecoration(
+                    hintText: 'Enter your full name',
+                    isSmall: isSmall,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your name';
+                    }
+                    return null;
+                  },
+                ),
+
+                SizedBox(height: responsiveHeight * 0.018),
 
                 // Email label
                 Text(
@@ -175,57 +252,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontSize: Responsive.fontSize(context, 15),
                     color: Colors.black87,
                   ),
-                  decoration: InputDecoration(
+                  decoration: _buildInputDecoration(
                     hintText: 'Enter your email address',
-                    hintStyle: GoogleFonts.inter(
-                      fontSize: Responsive.fontSize(context, 14),
-                      color: const Color(0xFFBBBBCC),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: isSmall ? 14 : 18,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFE8E8F0),
-                        width: 1.5,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFE8E8F0),
-                        width: 1.5,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: AppColors.primary,
-                        width: 1.5,
-                      ),
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: AppColors.expense,
-                        width: 1.5,
-                      ),
-                    ),
-                    focusedErrorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: AppColors.expense,
-                        width: 1.5,
-                      ),
-                    ),
+                    isSmall: isSmall,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter email';
+                    }
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
+                      return 'Please enter a valid email';
                     }
                     return null;
                   },
@@ -252,53 +289,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     fontSize: Responsive.fontSize(context, 15),
                     color: Colors.black87,
                   ),
-                  decoration: InputDecoration(
+                  decoration: _buildInputDecoration(
                     hintText: 'Enter your password',
-                    hintStyle: GoogleFonts.inter(
-                      fontSize: Responsive.fontSize(context, 14),
-                      color: const Color(0xFFBBBBCC),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: isSmall ? 14 : 18,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFE8E8F0),
-                        width: 1.5,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFE8E8F0),
-                        width: 1.5,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: AppColors.primary,
-                        width: 1.5,
-                      ),
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: AppColors.expense,
-                        width: 1.5,
-                      ),
-                    ),
-                    focusedErrorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: AppColors.expense,
-                        width: 1.5,
-                      ),
-                    ),
+                    isSmall: isSmall,
                     suffixIcon: IconButton(
                       icon: Icon(
                         _isPasswordVisible
@@ -318,17 +311,71 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter password';
                     }
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters';
+                    }
                     return null;
                   },
                 ),
 
-                SizedBox(height: responsiveHeight * 0.06),
+                SizedBox(height: responsiveHeight * 0.018),
 
-                // Sign In Button
+                // Confirm Password label
+                Text(
+                  'Confirm Password',
+                  style: GoogleFonts.inter(
+                    fontSize: Responsive.fontSize(context, 14),
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Confirm Password Field
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: !_isConfirmPasswordVisible,
+                  style: GoogleFonts.inter(
+                    fontSize: Responsive.fontSize(context, 15),
+                    color: Colors.black87,
+                  ),
+                  decoration: _buildInputDecoration(
+                    hintText: 'Re-enter your password',
+                    isSmall: isSmall,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isConfirmPasswordVisible
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        color: const Color(0xFF91919F),
+                        size: isSmall ? 20 : 22,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isConfirmPasswordVisible =
+                              !_isConfirmPasswordVisible;
+                        });
+                      },
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please confirm your password';
+                    }
+                    if (value != _passwordController.text) {
+                      return 'Passwords do not match';
+                    }
+                    return null;
+                  },
+                ),
+
+                SizedBox(height: responsiveHeight * 0.04),
+
+                // Sign Up Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
+                    onPressed: _isLoading ? null : _signUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -353,7 +400,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           )
                         : Text(
-                            'Sign In',
+                            'Sign Up',
                             style: GoogleFonts.inter(
                               fontSize: Responsive.fontSize(context, 16),
                               fontWeight: FontWeight.w600,
@@ -363,7 +410,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                SizedBox(height: responsiveHeight * 0.04),
+                SizedBox(height: responsiveHeight * 0.03),
 
                 // Divider with "Or continue with"
                 Row(
@@ -442,15 +489,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                SizedBox(height: responsiveHeight * 0.06),
+                SizedBox(height: responsiveHeight * 0.04),
 
-                // Sign Up Row
+                // Sign In Row
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Don't have any account? ",
+                        'Already have an account? ',
                         style: GoogleFonts.inter(
                           fontSize: Responsive.fontSize(context, 14),
                           color: Colors.black87,
@@ -459,10 +506,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushReplacementNamed(context, '/signup');
+                          Navigator.pushReplacementNamed(context, '/login');
                         },
                         child: Text(
-                          'Sign Up',
+                          'Sign In',
                           style: GoogleFonts.inter(
                             fontSize: Responsive.fontSize(context, 14),
                             color: AppColors.primary,
@@ -474,32 +521,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                SizedBox(height: responsiveHeight * 0.03),
-
-                // Continue as Guest
-                Center(
-                  child: TextButton(
-                    onPressed: () async {
-                      await Provider.of<UserProvider>(
-                        context,
-                        listen: false,
-                      ).loginAsGuest();
-                      if (context.mounted) {
-                        Navigator.pushReplacementNamed(context, '/home');
-                      }
-                    },
-                    child: Text(
-                      'Continue as Guest',
-                      style: GoogleFonts.inter(
-                        color: AppColors.grey,
-                        fontWeight: FontWeight.w500,
-                        fontSize: Responsive.fontSize(context, 14),
-                      ),
-                    ),
-                  ),
-                ),
-
-                //(height: responsiveHeight * 0.01),
+                SizedBox(height: responsiveHeight * 0.04),
               ],
             ),
           ),

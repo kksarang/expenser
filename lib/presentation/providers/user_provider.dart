@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/firestore_service.dart';
 
 class UserProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
+  final FirestoreService _firestoreService = FirestoreService();
   bool _isGuest = false;
   User? _user;
   String _name = 'My Name';
@@ -50,6 +52,18 @@ class UserProvider with ChangeNotifier {
 
   Future<void> loginWithEmail(String email, String password) async {
     await _authService.signInWithEmailAndPassword(email, password);
+  }
+
+  Future<void> signUpWithEmail(String name, String email, String password) async {
+    final credential = await _authService.createUserWithEmailAndPassword(email, password, name);
+    // Save user profile to Firestore
+    if (credential?.user != null) {
+      await _firestoreService.saveUserProfile(
+        userId: credential!.user!.uid,
+        name: name,
+        email: email,
+      );
+    }
   }
 
   Future<void> loginAsGuest() async {

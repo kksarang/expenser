@@ -12,6 +12,7 @@ import 'presentation/providers/bill_provider.dart'; // Added
 import 'presentation/screens/main_screen.dart';
 import 'presentation/screens/onboarding_screen.dart';
 import 'presentation/screens/login_screen.dart';
+import 'presentation/screens/signup_screen.dart';
 import 'core/constants/app_colors.dart';
 import 'core/theme/app_theme.dart';
 
@@ -95,6 +96,7 @@ class MyApp extends StatelessWidget {
               '/home': (context) => const MainScreen(),
               '/onboarding': (context) => const OnboardingScreen(),
               '/login': (context) => const LoginScreen(),
+              '/signup': (context) => const SignUpScreen(),
             },
           );
         },
