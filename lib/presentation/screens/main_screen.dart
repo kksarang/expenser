@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:ui';
 import '../../core/constants/app_colors.dart';
 import '../../domain/entities/category_entity.dart'; // For TransactionType
 import 'home_screen.dart';
@@ -52,76 +54,93 @@ class _MainScreenState extends State<MainScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
+      extendBody: true,
       body: IndexedStack(index: _currentIndex, children: _screens),
-      floatingActionButton: AnimatedBuilder(
-        animation: _fabOffsetAnimation,
-        builder: (context, child) {
-          return Transform.translate(
-            offset: Offset(0, _fabOffsetAnimation.value),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.primary,
-                    AppColors.primary.withOpacity(0.8),
-                  ],
+      bottomNavigationBar: _buildFloatingNavBar(isDark),
+    );
+  }
+
+  Widget _buildFloatingNavBar(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            height: 72,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.grey[900]!.withOpacity(0.85)
+                  : Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withOpacity(0.08)
+                    : Colors.white.withOpacity(0.7),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.12),
+                  blurRadius: 30,
+                  offset: const Offset(0, 8),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.4),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: child,
+                BoxShadow(
+                  color: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          );
-        },
-        child: FloatingActionButton(
-          onPressed: _showAddOptionsData,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add, color: Colors.white, size: 30),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        color: Colors.white,
-        child: SizedBox(
-          height: 70,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(Icons.home_rounded, Icons.home_outlined, 'Home', 0),
-              _buildNavItem(
-                Icons.calendar_month_rounded,
-                Icons.calendar_month_outlined,
-                'Calendar',
-                1,
-              ),
-              const SizedBox(width: 48),
-              _buildNavItem(
-                Icons.pie_chart_rounded,
-                Icons.pie_chart_outline_rounded,
-                'Analytics',
-                2,
-              ),
-              _buildNavItem(
-                Icons.person_rounded,
-                Icons.person_outline_rounded,
-                'Profile',
-                3,
-              ),
-            ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(Icons.home_rounded, Icons.home_outlined, 'Home', 0, isDark),
+                _buildNavItem(Icons.calendar_month_rounded, Icons.calendar_month_outlined, 'Calendar', 1, isDark),
+                // Center FAB
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.mediumImpact();
+                    _showAddOptionsData();
+                  },
+                  child: AnimatedBuilder(
+                    animation: _fabOffsetAnimation,
+                    builder: (context, child) {
+                      return Transform.translate(
+                        offset: Offset(0, _fabOffsetAnimation.value * 0.5),
+                        child: child,
+                      );
+                    },
+                    child: Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppColors.primary, Color(0xFF7B4FFF)],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.5),
+                            blurRadius: 16,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+                    ),
+                  ),
+                ),
+                _buildNavItem(Icons.pie_chart_rounded, Icons.pie_chart_outline_rounded, 'Analytics', 2, isDark),
+                _buildNavItem(Icons.person_rounded, Icons.person_outline_rounded, 'Profile', 3, isDark),
+              ],
+            ),
           ),
         ),
       ),
@@ -133,29 +152,49 @@ class _MainScreenState extends State<MainScreen>
     IconData inactiveIcon,
     String label,
     int index,
+    bool isDark,
   ) {
     final isSelected = _currentIndex == index;
-    return InkWell(
-      onTap: () => setState(() => _currentIndex = index),
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _currentIndex = index);
+      },
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 64,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              isSelected ? activeIcon : inactiveIcon,
-              color: isSelected ? AppColors.primary : AppColors.grey,
-              size: 24,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              padding: EdgeInsets.all(isSelected ? 10 : 8),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.primary.withOpacity(0.12)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                isSelected ? activeIcon : inactiveIcon,
+                color: isSelected
+                    ? AppColors.primary
+                    : (isDark ? Colors.grey[400] : AppColors.grey),
+                size: 22,
+              ),
             ),
             const SizedBox(height: 2),
-            Text(
-              label,
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
               style: TextStyle(
-                color: isSelected ? AppColors.primary : AppColors.grey,
-                fontSize: 11,
+                color: isSelected
+                    ? AppColors.primary
+                    : (isDark ? Colors.grey[400] : AppColors.grey),
+                fontSize: isSelected ? 11 : 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
+              child: Text(label),
             ),
           ],
         ),

@@ -75,7 +75,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black),
+          icon: const Icon(
+            Icons.close,
+            color: Color.fromARGB(255, 255, 255, 255),
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
