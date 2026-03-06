@@ -418,7 +418,7 @@ class _CalendarTxTile extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: Color(cat?.colorValue ?? 0xFFEEE5FF).withOpacity(0.15),
+                color: Color(cat?.colorValue ?? 0xFFEEE5FF).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(

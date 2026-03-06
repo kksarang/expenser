@@ -8,6 +8,8 @@ import '../screens/onboarding_screen.dart';
 import '../screens/main_screen.dart';
 import '../screens/splash_screen.dart';
 import '../providers/user_provider.dart';
+import '../../core/services/remote_config_service.dart';
+import 'update_dialog.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -29,6 +31,35 @@ class _AuthWrapperState extends State<AuthWrapper> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _isFirstTime = prefs.getBool('isFirstTime') ?? true;
+    });
+    _checkUpdate();
+  }
+
+  Future<void> _checkUpdate() async {
+    final remoteConfig = RemoteConfigService();
+    
+    // Check for Force Update
+    if (await remoteConfig.isUpdateRequired()) {
+      _showUpdateDialog(force: true, version: remoteConfig.latestVersion);
+      return;
+    }
+    
+    // Check for Flexible Update
+    if (await remoteConfig.isUpdateAvailable()) {
+      _showUpdateDialog(force: false, version: remoteConfig.latestVersion);
+    }
+  }
+
+  void _showUpdateDialog({required bool force, required String version}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: context,
+        barrierDismissible: !force,
+        builder: (context) => UpdateDialog(
+          isForceUpdate: force,
+          latestVersion: version,
+        ),
+      );
     });
   }
 

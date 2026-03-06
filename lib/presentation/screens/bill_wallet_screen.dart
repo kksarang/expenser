@@ -107,7 +107,7 @@ class _BillWalletScreenState extends State<BillWalletScreen> {
                 Icon(
                   Icons.construction_rounded,
                   size: 80,
-                  color: Colors.grey.withOpacity(0.3),
+                  color: Colors.grey.withValues(alpha: 0.3),
                 ),
                 const SizedBox(height: 20),
                 const Text(
@@ -121,19 +121,19 @@ class _BillWalletScreenState extends State<BillWalletScreen> {
               ],
             ),
           ),
-          // floatingActionButton: FloatingActionButton.extended(
-          //   onPressed: _isProcessing ? null : _showUploadOptions,
-          //   backgroundColor: AppColors.primary,
-          //   icon: const Icon(Icons.document_scanner_rounded, color: Colors.white),
-          //   label: const Text(
-          //     'Upload Bill',
-          //     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          //   ),
-          // ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: _isProcessing ? null : _showUploadOptions,
+            backgroundColor: AppColors.primary,
+            icon: const Icon(Icons.document_scanner_rounded, color: Colors.white),
+            label: const Text(
+              'Upload Bill',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
         ),
         if (_isProcessing)
           Container(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             child: Center(
               child: Card(
                 shape: RoundedRectangleBorder(

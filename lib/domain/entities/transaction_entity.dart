@@ -16,6 +16,8 @@ class TransactionEntity {
   final String? payee; // Merchant or Source
   final String? reference; // Transaction ID
 
+  final String? walletId; // Null means "Personal Wallet"
+
   TransactionEntity({
     required this.id,
     required this.amount,
@@ -27,5 +29,6 @@ class TransactionEntity {
     required this.account,
     this.payee,
     this.reference,
+    this.walletId,
   });
 }

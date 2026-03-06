@@ -10,6 +10,8 @@ import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/bill_provider.dart'; // Added
 import 'presentation/providers/settings_provider.dart';
 import 'presentation/providers/notification_provider.dart';
+import 'presentation/providers/wallet_provider.dart';
+import 'presentation/providers/connectivity_provider.dart';
 // import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/main_screen.dart';
 import 'presentation/screens/onboarding_screen.dart';
@@ -22,15 +24,19 @@ import 'package:firebase_core/firebase_core.dart'; // Added
 import 'firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'presentation/widgets/auth_wrapper.dart'; // Added import
+import 'core/services/remote_config_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // 1. Load environment variables
   try {
     await dotenv.load(fileName: ".env");
   } catch (e) {
-    print("Could not load .env file: $e");
+    debugPrint("Could not load .env file: $e");
   }
 
+  // 2. Initialize Firebase FIRST
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -39,9 +45,19 @@ void main() async {
       persistenceEnabled: true,
       cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
     );
+    debugPrint('Firebase initialized successfully');
   } catch (e) {
-    print("Firebase init failed: $e. Make sure to run 'flutterfire configure'");
+    debugPrint("Firebase init failed: $e. Make sure to run 'flutterfire configure'");
   }
+
+  // 3. Initialize Remote Config (Depends on Firebase)
+  try {
+    final remoteConfig = RemoteConfigService();
+    await remoteConfig.initialize();
+  } catch (e) {
+    debugPrint('Remote Config initialization failed: $e');
+  }
+
   runApp(const MyApp());
 }
 
@@ -55,13 +71,21 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => TransactionProvider()),
+        ChangeNotifierProvider(create: (_) => WalletProvider()),
+        ChangeNotifierProxyProvider<WalletProvider, TransactionProvider>(
+          create: (_) => TransactionProvider(),
+          update: (_, walletProvider, transactionProvider) {
+            transactionProvider!.updateDependencies(walletProvider);
+            return transactionProvider;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => CategoryProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => BillProvider()), // Added
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ConnectivityProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

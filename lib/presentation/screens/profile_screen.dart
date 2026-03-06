@@ -13,11 +13,13 @@ import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:image_picker/image_picker.dart';
+import '../providers/connectivity_provider.dart';
 import 'login_screen.dart';
 import '../../core/services/local_storage_service.dart';
 import '../providers/settings_provider.dart';
 import 'notification_screen.dart';
 import '../providers/notification_provider.dart';
+import 'wallets_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -38,7 +40,7 @@ class ProfileScreen extends StatelessWidget {
           end: Alignment.bottomCenter,
           stops: const [0.0, 0.3],
           colors: [
-            AppColors.primary.withOpacity(isDark ? 0.3 : 0.15),
+            AppColors.primary.withValues(alpha: isDark ? 0.3 : 0.15),
             Theme.of(context).scaffoldBackgroundColor,
           ],
         ),
@@ -86,7 +88,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
+                              color: Colors.black.withValues(alpha: 0.08),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -201,12 +203,26 @@ class ProfileScreen extends StatelessWidget {
                             return _ProfileMenuTile(
                               icon: Icons.notifications_none_rounded,
                               title: 'Notifications',
-                              trailing: provider.unreadCount > 0
-                                  ? Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (!provider.hasPermission)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange.withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                                       ),
+                                      child: const Text(
+                                        'Disabled',
+                                        style: TextStyle(color: Colors.orange, fontSize: 10, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  if (provider.unreadCount > 0) ...[
+                                    if (!provider.hasPermission) const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
                                         color: AppColors.primary,
                                         borderRadius: BorderRadius.circular(12),
@@ -219,8 +235,12 @@ class ProfileScreen extends StatelessWidget {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                    )
-                                  : null,
+                                    ),
+                                  ],
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+                                ],
+                              ),
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -229,6 +249,16 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             );
                           },
+                        ),
+                        _ProfileMenuTile(
+                          icon: Icons.account_balance_wallet_rounded,
+                          title: 'My Wallets',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const WalletsScreen(),
+                            ),
+                          ),
                         ),
                         _ProfileMenuTile(
                           icon: Icons.receipt_long_rounded,
@@ -279,9 +309,9 @@ class ProfileScreen extends StatelessWidget {
                                 Icons.vibration_rounded,
                                 color:
                                     Theme.of(context).brightness ==
-                                        Brightness.dark
-                                    ? Colors.white70
-                                    : Colors.black87,
+                                            Brightness.dark
+                                        ? Colors.white70
+                                        : Colors.black87,
                                 size: 24,
                               ),
                               title: Text(
@@ -291,9 +321,9 @@ class ProfileScreen extends StatelessWidget {
                                   fontSize: 15,
                                   color:
                                       Theme.of(context).brightness ==
-                                          Brightness.dark
-                                      ? Colors.white
-                                      : Colors.black87,
+                                              Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black87,
                                 ),
                               ),
                               trailing: Switch.adaptive(
@@ -394,17 +424,17 @@ class ProfileScreen extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.bolt_rounded,
                               size: 16,
-                              color: const Color.fromARGB(255, 95, 28, 0),
+                              color: Color.fromARGB(255, 95, 28, 0),
                             ),
                             const SizedBox(width: 4),
-                            Text(
+                            const Text(
                               'Powered by kksystems',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: const Color.fromARGB(255, 95, 28, 0),
+                                color: Color.fromARGB(255, 95, 28, 0),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -417,8 +447,6 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-
-            //   const SizedBox(height: 30),
           ],
         ),
       ),
@@ -441,6 +469,13 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Future<void> _pickImage(BuildContext context, UserProvider provider) async {
+    if (context.read<ConnectivityProvider>().isOffline) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Internet required to update profile photo.')),
+      );
+      return;
+    }
+    
     final ImagePicker picker = ImagePicker();
     try {
       final XFile? image = await picker.pickImage(
@@ -474,6 +509,12 @@ class ProfileScreen extends StatelessWidget {
         icon: Icons.edit_note_rounded,
         primaryButtonText: 'Save',
         onPrimaryPressed: () async {
+          if (context.read<ConnectivityProvider>().isOffline) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Internet required to update profile.')),
+            );
+            return;
+          }
           await provider.updateProfile(nameController.text, bioController.text);
           if (context.mounted) Navigator.pop(context);
         },
@@ -534,7 +575,6 @@ class ProfileScreen extends StatelessWidget {
           await provider.logout();
 
           // 4. Show Success SnackBar Globally (Raw)
-          // Note: Showing this AFTER logout ensures we don't show it if logout hangs/fails
           scaffoldMessengerKey.currentState?.showSnackBar(
             const SnackBar(
               content: Text('Logged out successfully.'),
@@ -583,10 +623,12 @@ class ProfileScreen extends StatelessWidget {
                 listen: false,
               ).clearData();
 
-              await Provider.of<CategoryProvider>(
-                context,
-                listen: false,
-              ).clearData();
+              if (context.mounted) {
+                await Provider.of<CategoryProvider>(
+                  context,
+                  listen: false,
+                ).clearData();
+              }
             }
 
             /// 3️⃣ Clear Local Storage (IMPORTANT)
@@ -647,7 +689,7 @@ class ProfileScreen extends StatelessWidget {
         secondaryButtonText: 'Later',
         onPrimaryPressed: () async {
           Navigator.pop(context);
-          final String packageName = "com.kksystems.expenser";
+          const String packageName = "com.kksystems.expenser";
           final Uri url = Uri.parse(
             'https://play.google.com/store/apps/details?id=$packageName',
           );
@@ -724,15 +766,15 @@ class _ProfileMenuGroup extends StatelessWidget {
             boxShadow: [
               if (!isDark)
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
             ],
             border: Border.all(
               color: isDark
-                  ? Colors.white.withOpacity(0.05)
-                  : Colors.grey.withOpacity(0.1),
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.grey.withValues(alpha: 0.1),
             ),
           ),
           child: Column(
@@ -751,7 +793,7 @@ class _ProfileMenuGroup extends StatelessWidget {
                       endIndent: 16,
                       color: isDark
                           ? Colors.white12
-                          : Colors.grey.withOpacity(0.1),
+                          : Colors.grey.withValues(alpha: 0.1),
                     ),
                 ],
               );
@@ -806,7 +848,7 @@ class _ProfileMenuTile extends StatelessWidget {
           trailing ??
           Icon(
             Icons.chevron_right_rounded,
-            color: isDark ? Colors.white30 : Colors.grey.withOpacity(0.6),
+            color: isDark ? Colors.white30 : Colors.grey.withValues(alpha: 0.6),
             size: 20,
           ),
     );

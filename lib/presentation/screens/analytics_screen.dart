@@ -230,7 +230,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     decoration: BoxDecoration(
                       color: Color(
                         category?.colorValue ?? 0xFFEEE5FF,
-                      ).withOpacity(0.15),
+                      ).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
@@ -304,7 +304,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.3),
+                              color: AppColors.primary.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -453,7 +453,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               child: YearPicker(
                 firstDate: DateTime(2020),
                 lastDate: DateTime(2100),
-                initialDate: _selectedDate,
                 selectedDate: _selectedDate,
                 onChanged: (DateTime dateTime) {
                   setState(() => _selectedDate = dateTime);
@@ -574,10 +573,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: iconColor.withOpacity(0.2)),
+        border: Border.all(color: iconColor.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: iconColor.withOpacity(0.1),
+            color: iconColor.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

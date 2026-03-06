@@ -10,6 +10,7 @@ import 'profile_screen.dart';
 import 'add_transaction_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/notification_provider.dart';
+import '../providers/connectivity_provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -61,10 +62,44 @@ class _MainScreenState extends State<MainScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isOffline = context.watch<ConnectivityProvider>().isOffline;
+
     return Scaffold(
       extendBody: true,
-      body: IndexedStack(index: _currentIndex, children: _screens),
+      body: Column(
+        children: [
+          if (isOffline)
+            _buildConnectivityBanner(),
+          Expanded(
+            child: IndexedStack(index: _currentIndex, children: _screens),
+          ),
+        ],
+      ),
       bottomNavigationBar: _buildFloatingNavBar(isDark),
+    );
+  }
+
+  Widget _buildConnectivityBanner() {
+    return Container(
+      width: double.infinity,
+      color: Colors.redAccent.withValues(alpha: 0.9),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.wifi_off_rounded, color: Colors.white, size: 16),
+          SizedBox(width: 8),
+          Text(
+            'No Internet Connection',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -79,23 +114,23 @@ class _MainScreenState extends State<MainScreen>
             height: 72,
             decoration: BoxDecoration(
               color: isDark
-                  ? Colors.grey[900]!.withOpacity(0.85)
-                  : Colors.white.withOpacity(0.9),
+                  ? Colors.grey[900]!.withValues(alpha: 0.85)
+                  : Colors.white.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(28),
               border: Border.all(
                 color: isDark
-                    ? Colors.white.withOpacity(0.08)
-                    : Colors.white.withOpacity(0.7),
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.white.withValues(alpha: 0.7),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.12),
+                  color: AppColors.primary.withValues(alpha: 0.12),
                   blurRadius: 30,
                   offset: const Offset(0, 8),
                 ),
                 BoxShadow(
-                  color: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
+                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
                   blurRadius: 20,
                   offset: const Offset(0, 4),
                 ),
@@ -132,7 +167,7 @@ class _MainScreenState extends State<MainScreen>
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.5),
+                            color: AppColors.primary.withValues(alpha: 0.5),
                             blurRadius: 16,
                             spreadRadius: 1,
                             offset: const Offset(0, 4),
@@ -178,7 +213,7 @@ class _MainScreenState extends State<MainScreen>
               padding: EdgeInsets.all(isSelected ? 10 : 8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.primary.withOpacity(0.12)
+                    ? AppColors.primary.withValues(alpha: 0.12)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -283,7 +318,7 @@ class _MainScreenState extends State<MainScreen>
           vertical: 30,
         ), // Increased from 20 to 30
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(

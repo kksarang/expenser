@@ -199,7 +199,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -323,7 +323,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -536,7 +536,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: iconColor, size: 20),
@@ -586,7 +586,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -596,7 +596,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: top5.length,
-        separatorBuilder: (_, __) =>
+        separatorBuilder: (context, index) =>
             Divider(height: 1, color: Colors.grey.shade100),
         itemBuilder: (context, index) {
           final catId = top5[index];
@@ -611,7 +611,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             leading: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Color(cat?.colorValue ?? 0xFFEEEEEE).withOpacity(0.15),
+                color: Color(cat?.colorValue ?? 0xFFEEEEEE).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(

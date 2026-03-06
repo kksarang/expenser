@@ -3,18 +3,18 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../providers/connectivity_provider.dart';
 import '../../core/services/haptic_service.dart';
+import '../../core/utils/responsive.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/category_provider.dart';
 import 'category_management_screen.dart';
 import '../widgets/add_category_sheet.dart';
-
-import '../../core/utils/responsive.dart';
+import '../providers/wallet_provider.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   final TransactionType initialType;
@@ -35,6 +35,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   late TransactionType _selectedType;
   CategoryEntity? _selectedCategory;
   DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
 
   String _selectedAccount = 'Cash'; // unified account selection
   bool _isLoading = false;
@@ -106,6 +107,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       _amountController.text = tx.amount.toStringAsFixed(0);
       _noteController.text = tx.note ?? '';
       _selectedDate = tx.date;
+      _selectedTime = TimeOfDay.fromDateTime(tx.date);
       // Map existing account back to chips; fall back to 'Cash'
       _selectedAccount = _accountOptions.contains(tx.account)
           ? tx.account
@@ -177,7 +179,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -234,13 +236,30 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    Text(
-                      isIncome ? 'Income' : 'Expense',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: Responsive.fontSize(context, 18),
-                      ),
+                    Column(
+                      children: [
+                        Text(
+                          isIncome ? 'Income' : 'Expense',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: Responsive.fontSize(context, 18),
+                          ),
+                        ),
+                        Consumer<WalletProvider>(
+                          builder: (context, wp, child) {
+                            final wName = wp.selectedWallet?.name ?? 'Personal Wallet';
+                            return Text(
+                              wName,
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: Responsive.fontSize(context, 12),
+                                fontWeight: FontWeight.normal,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                     const SizedBox(width: 48), // Balance centering
                   ],
@@ -484,9 +503,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                                       ),
                                       decoration: BoxDecoration(
                                         color: isSelected
-                                            ? AppColors.primary.withOpacity(
-                                                0.12,
-                                              )
+                                            ? AppColors.primary.withValues(alpha: 0.12)
                                             : Colors.white,
                                         borderRadius: BorderRadius.circular(24),
                                         border: Border.all(
@@ -499,7 +516,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                                             ? [
                                                 BoxShadow(
                                                   color: AppColors.primary
-                                                      .withOpacity(0.15),
+                                                      .withValues(alpha: 0.15),
                                                   blurRadius: 8,
                                                   offset: const Offset(0, 2),
                                                 ),
@@ -578,49 +595,100 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                               // ),
                               // const SizedBox(height: 16),
 
-                              // Date Picker
-                              GestureDetector(
-                                onTap: () async {
-                                  final picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: _selectedDate,
-                                    firstDate: DateTime(2000),
-                                    lastDate: DateTime(2100),
-                                  );
-                                  if (picked != null)
-                                    setState(() => _selectedDate = picked);
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: AppColors.lightGrey,
-                                    ),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.calendar_today,
-                                        size: 18,
-                                        color: AppColors.grey,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        DateFormat(
-                                          'dd MMM yyyy',
-                                        ).format(_selectedDate),
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
+                              Row(
+                                children: [
+                                  // Date Picker
+                                  Expanded(
+                                    flex: 5,
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        final picked = await showDatePicker(
+                                          context: context,
+                                          initialDate: _selectedDate,
+                                          firstDate: DateTime(2000),
+                                          lastDate: DateTime(2100),
+                                        );
+                                        if (picked != null) {
+                                          setState(() => _selectedDate = picked);
+                                        }
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: AppColors.lightGrey,
+                                          ),
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(
+                                              Icons.calendar_today,
+                                              size: 18,
+                                              color: AppColors.grey,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              DateFormat('dd MMM').format(_selectedDate),
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(width: 16),
+                                  // Time Picker
+                                  Expanded(
+                                    flex: 4,
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        final picked = await showTimePicker(
+                                          context: context,
+                                          initialTime: _selectedTime,
+                                        );
+                                        if (picked != null) {
+                                          setState(() => _selectedTime = picked);
+                                        }
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: AppColors.lightGrey,
+                                          ),
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(
+                                              Icons.access_time_rounded,
+                                              size: 18,
+                                              color: AppColors.grey,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              _selectedTime.format(context),
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
+                              const SizedBox(height: 16), // space before save area
                             ],
                           ),
                         ),
@@ -632,7 +700,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                           color: Colors.white,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
+                              color: Colors.black.withValues(alpha: 0.04),
                               blurRadius: 10,
                               offset: const Offset(0, -4),
                             ),
@@ -648,7 +716,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.white,
                                 disabledBackgroundColor: AppColors.primary
-                                    .withOpacity(0.6),
+                                    .withValues(alpha: 0.6),
                                 disabledForegroundColor: Colors.white,
                                 padding: EdgeInsets.symmetric(
                                   vertical: isSmall ? 14 : 16,
@@ -725,12 +793,24 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       );
       return;
     }
+    
+    // Combine date and time
+    final finalDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+
+    final walletProvider = Provider.of<WalletProvider>(context, listen: false);
+    final walletId = walletProvider.selectedWallet?.id;
 
     final transaction = TransactionEntity(
       id: isEditing ? widget.initialTransaction!.id : const Uuid().v4(),
       amount: amount,
       categoryId: _selectedCategory!.id,
-      date: _selectedDate,
+      date: finalDateTime,
       note: _noteController.text,
       type: _selectedType,
       paymentType: _derivePaymentType(_selectedAccount),
@@ -739,14 +819,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       reference: _referenceController.text.isEmpty
           ? null
           : _referenceController.text,
+      walletId: isEditing ? widget.initialTransaction!.walletId : walletId,
     );
 
     setState(() => _isLoading = true);
 
     try {
-      // Check connectivity
-      final connectivityResult = await Connectivity().checkConnectivity();
-      final isOffline = connectivityResult.contains(ConnectivityResult.none);
+      // Check connectivity using the global provider
+      final isOffline = context.read<ConnectivityProvider>().isOffline;
 
       final transactionProvider = Provider.of<TransactionProvider>(
         context,
@@ -779,10 +859,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         }
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -880,7 +961,7 @@ class _CategoryPickerSheetState extends State<_CategoryPickerSheet> {
                       style: GoogleFonts.inter(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black.withOpacity(0.8),
+                        color: Colors.black.withValues(alpha: 0.8),
                       ),
                     ),
                     TextButton(
@@ -905,7 +986,7 @@ class _CategoryPickerSheetState extends State<_CategoryPickerSheet> {
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
@@ -1017,7 +1098,7 @@ class _CategoryPickerSheetState extends State<_CategoryPickerSheet> {
                     : null,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),

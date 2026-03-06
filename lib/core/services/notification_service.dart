@@ -22,7 +22,7 @@ class NotificationService {
   }
 
   // Set up Firebase Cloud Messaging
-  Future<void> setupFirebaseMessaging() async {
+  Future<AuthorizationStatus> setupFirebaseMessaging() async {
     // Request permission (required for iOS, mostly auto-granted on newer Androids depending on OS version but good practice)
     NotificationSettings settings = await _messaging.requestPermission(
       alert: true,
@@ -36,7 +36,7 @@ class NotificationService {
       }
     } else {
       if (kDebugMode) {
-        print('User declined or has not accepted permission');
+        print('User declined or has not accepted permission: ${settings.authorizationStatus}');
       }
     }
 
@@ -66,10 +66,10 @@ class NotificationService {
         if (kDebugMode) {
           print('Message also contained a notification: ${message.notification}');
         }
-        // Here we could show a local notification overlay if desired, 
-        // but adding to Firestore usually suffices for in-app DB sync.
       }
     });
+
+    return settings.authorizationStatus;
   }
 
   // Get notifications stream
@@ -97,6 +97,35 @@ class NotificationService {
     } catch (e) {
       if (kDebugMode) {
         print('Error creating notification: $e');
+      }
+    }
+  }
+
+  // Add a notification for multiple users (e.g., Shared Wallet Members)
+  Future<void> createGroupNotification({
+    required NotificationEntity notification,
+    required List<String> memberUids,
+  }) async {
+    try {
+      WriteBatch batch = _firestore.batch();
+      
+      for (String uid in memberUids) {
+        // Don't notify the person who made the change if desired, or let them see it too
+        if (uid == currentUid) continue; 
+        
+        DocumentReference docRef = _firestore
+            .collection('users')
+            .doc(uid)
+            .collection('notifications')
+            .doc();
+            
+        batch.set(docRef, notification.toMap());
+      }
+
+      await batch.commit();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error creating group notification: $e');
       }
     }
   }

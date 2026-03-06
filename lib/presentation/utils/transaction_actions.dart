@@ -32,26 +32,41 @@ void confirmDeleteTransaction(
       primaryButtonText: 'Delete',
       onPrimaryPressed: () async {
         Navigator.pop(dialogContext);
-        final provider = Provider.of<TransactionProvider>(
-          context,
-          listen: false,
-        );
-        await provider.deleteTransaction(transaction.id);
+        
+        try {
+          final provider = Provider.of<TransactionProvider>(
+            context,
+            listen: false,
+          );
+          await provider.deleteTransaction(transaction.id);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Transaction deleted'),
-            action: SnackBarAction(
-              label: 'Undo',
-              onPressed: () {
-                Provider.of<TransactionProvider>(
-                  context,
-                  listen: false,
-                ).addTransaction(transaction);
-              },
-            ),
-          ),
-        );
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Transaction deleted'),
+                action: SnackBarAction(
+                  label: 'Undo',
+                  onPressed: () {
+                    Provider.of<TransactionProvider>(
+                      context,
+                      listen: false,
+                    ).addTransaction(transaction);
+                  },
+                ),
+              ),
+            );
+          }
+        } catch (e) {
+          if (context.mounted) {
+            debugPrint("Delete error: $e");
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to delete: ${e.toString().replaceAll('Exception: ', '')}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
       },
     ),
   );

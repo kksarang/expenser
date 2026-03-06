@@ -38,7 +38,7 @@ class BalanceCard extends StatelessWidget {
               Text(
                 'Total Balance',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -62,7 +62,7 @@ class BalanceCard extends StatelessWidget {
               Text(
                 '2644  7545  3867  1965',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 1.2,
@@ -73,7 +73,7 @@ class BalanceCard extends StatelessWidget {
                 children: [
                    CircleAvatar(
                      radius: 10,
-                     backgroundColor: Colors.red.withOpacity(0.8),
+                     backgroundColor: Colors.red.withValues(alpha: 0.8),
                    ),
                    Transform.translate(
                      offset: const Offset(-8, 0),

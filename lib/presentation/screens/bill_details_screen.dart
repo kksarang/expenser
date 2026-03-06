@@ -129,7 +129,7 @@ class _BillDetailsScreenState extends State<BillDetailsScreen> {
                         gradient: LinearGradient(
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
-                          colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+                          colors: [Colors.black.withValues(alpha: 0.6), Colors.transparent],
                         ),
                       ),
                       alignment: Alignment.bottomRight,

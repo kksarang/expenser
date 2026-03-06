@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/services/notification_service.dart';
 import '../../domain/entities/notification_entity.dart';
+import 'wallet_provider.dart';
 
 enum Timeframe { week, month, year }
 
@@ -16,6 +17,10 @@ class TransactionProvider with ChangeNotifier {
   List<TransactionEntity> _transactions = [];
   final FirestoreService _firestoreService = FirestoreService();
   final NotificationService _notificationService = NotificationService();
+  
+  WalletProvider? _walletProvider;
+  String? _currentWalletId;
+  String? get currentWalletId => _currentWalletId;
 
   FirebaseAuth? get _auth {
     try {
@@ -44,37 +49,51 @@ class TransactionProvider with ChangeNotifier {
     _initAuthListener();
   }
 
+  void updateDependencies(WalletProvider walletProvider) {
+    _walletProvider = walletProvider;
+    final newWalletId = walletProvider.selectedWallet?.id;
+    if (_currentWalletId != newWalletId) {
+      _currentWalletId = newWalletId;
+      _restartTransactionStream();
+    }
+  }
+
+  void _restartTransactionStream() {
+    _transactionSubscription?.cancel();
+    final user = _safeUser;
+    if (user != null) {
+      // Clear current transactions immediately so UI reflects the switch instantly
+      _transactions.clear();
+      notifyListeners();
+
+      _transactionSubscription = _firestoreService
+          .getTransactionsStream(user.uid, walletId: currentWalletId)
+          .listen(
+            (transactions) {
+              _transactions = transactions;
+              notifyListeners();
+            },
+            onError: (e) {
+              debugPrint("Transaction Stream Error: $e");
+            },
+          );
+    } else {
+      loadTransactions();
+    }
+  }
+
   void _initAuthListener() {
     try {
       final auth = _auth;
       if (auth != null) {
         auth.authStateChanges().listen((user) {
-          _transactionSubscription?.cancel(); // Cancel previous stream
-          if (user != null) {
-            // Switch to Firestore
-            _transactionSubscription = _firestoreService
-                .getTransactionsStream(user.uid)
-                .listen(
-                  (transactions) {
-                    _transactions = transactions;
-                    notifyListeners();
-                  },
-                  onError: (e) {
-                    print(
-                      "Transaction Stream Error (Expected during logout): $e",
-                    );
-                  },
-                );
-          } else {
-            // Fallback to local
-            loadTransactions();
-          }
+          _restartTransactionStream();
         });
       } else {
         loadTransactions();
       }
     } catch (e) {
-      print("Auth listener init failed: $e");
+      debugPrint("Auth listener init failed: $e");
       loadTransactions();
     }
   }
@@ -109,23 +128,37 @@ class TransactionProvider with ChangeNotifier {
     final user = _safeUser;
     if (user != null) {
       try {
-        await _firestoreService.saveTransaction(user.uid, transaction);
+        await _firestoreService.saveTransaction(user.uid, transaction, walletId: currentWalletId);
         
         final isIncome = transaction.type == TransactionType.income;
-        await _notificationService.createNotification(NotificationEntity(
+        final selectedWallet = _walletProvider?.selectedWallet;
+        final isSharedWallet = selectedWallet != null && !selectedWallet.isPersonal;
+        
+        final notificationMsg = isSharedWallet 
+          ? '${user.displayName ?? 'A member'} added ₹${transaction.amount.toStringAsFixed(0)} ${isIncome ? 'income' : 'expense'} in ${selectedWallet.name}.'
+          : '₹${transaction.amount.toStringAsFixed(0)} ${isIncome ? 'income' : 'expense'} added.';
+          
+        final notification = NotificationEntity(
           id: '',
           title: isIncome ? 'Income Added' : 'Expense Added',
-          message: isIncome 
-              ? '₹${transaction.amount.toStringAsFixed(0)} income added successfully.'
-              : '₹${transaction.amount.toStringAsFixed(0)} added as expense.',
+          message: notificationMsg,
           type: isIncome ? NotificationType.income : NotificationType.expense,
           timestamp: DateTime.now(),
           transactionId: transaction.id,
-        ));
+        );
+
+        if (isSharedWallet) {
+          await _notificationService.createGroupNotification(
+            notification: notification, 
+            memberUids: selectedWallet.members,
+          );
+        } else {
+          await _notificationService.createNotification(notification);
+        }
         
         // Stream will update local list automatically if successful
       } catch (e) {
-        print("Firestore save failed: $e");
+        debugPrint("Firestore save failed: $e");
         rethrow;
       }
     } else {
@@ -139,18 +172,32 @@ class TransactionProvider with ChangeNotifier {
     final user = _safeUser;
     if (user != null) {
       try {
-        await _firestoreService.saveTransaction(user.uid, transaction);
+        await _firestoreService.saveTransaction(user.uid, transaction, walletId: currentWalletId);
         
-        await _notificationService.createNotification(NotificationEntity(
+        final selectedWallet = _walletProvider?.selectedWallet;
+        final isSharedWallet = selectedWallet != null && !selectedWallet.isPersonal;
+        
+        final notification = NotificationEntity(
           id: '',
           title: 'Transaction Edited',
-          message: 'Your transaction has been updated.',
+          message: isSharedWallet 
+            ? '${user.displayName ?? 'A member'} updated a transaction in ${selectedWallet.name}.'
+            : 'Your transaction has been updated.',
           type: NotificationType.system,
           timestamp: DateTime.now(),
           transactionId: transaction.id,
-        ));
+        );
+        
+        if (isSharedWallet) {
+          await _notificationService.createGroupNotification(
+            notification: notification, 
+            memberUids: selectedWallet.members,
+          );
+        } else {
+          await _notificationService.createNotification(notification);
+        }
       } catch (e) {
-        print("Firestore update failed: $e");
+        debugPrint("Firestore update failed: $e");
         rethrow;
       }
     } else {
@@ -166,15 +213,34 @@ class TransactionProvider with ChangeNotifier {
   Future<void> deleteTransaction(String id) async {
     final user = _safeUser;
     if (user != null) {
-      await _firestoreService.deleteTransaction(user.uid, id);
-      
-      await _notificationService.createNotification(NotificationEntity(
-        id: '',
-        title: 'Transaction Deleted',
-        message: 'A transaction was removed from your records.',
-        type: NotificationType.system,
-        timestamp: DateTime.now(),
-      ));
+      try {
+        await _firestoreService.deleteTransaction(user.uid, id, walletId: currentWalletId);
+        
+        final selectedWallet = _walletProvider?.selectedWallet;
+        final isSharedWallet = selectedWallet != null && !selectedWallet.isPersonal;
+          
+        final notification = NotificationEntity(
+          id: '',
+          title: 'Transaction Deleted',
+          message: isSharedWallet
+            ? '${user.displayName ?? 'A member'} deleted a transaction from ${selectedWallet.name}.'
+            : 'A transaction was removed from your records.',
+          type: NotificationType.system,
+          timestamp: DateTime.now(),
+        );
+        
+        if (isSharedWallet) {
+          await _notificationService.createGroupNotification(
+            notification: notification, 
+            memberUids: selectedWallet.members,
+          );
+        } else {
+          await _notificationService.createNotification(notification);
+        }
+      } catch (e) {
+        debugPrint("Firestore delete failed: $e");
+        rethrow;
+      }
     } else {
       _transactions.removeWhere((t) => t.id == id);
       await _saveLocalTransactions();
@@ -196,6 +262,7 @@ class TransactionProvider with ChangeNotifier {
         account: t.account,
         payee: t.payee,
         reference: t.reference,
+        walletId: t.walletId,
       );
       return model.toMap();
     }).toList();
@@ -237,10 +304,11 @@ class TransactionProvider with ChangeNotifier {
         double expense = 0;
         for (var t in _transactions) {
           if (t.date.year == now.year && t.date.month == i) {
-            if (t.type == TransactionType.income)
+            if (t.type == TransactionType.income) {
               income += t.amount;
-            else
+            } else {
               expense += t.amount;
+            }
           }
         }
         summary.add({'income': income, 'expense': expense});
@@ -257,10 +325,11 @@ class TransactionProvider with ChangeNotifier {
       if (t.date.year == day.year &&
           t.date.month == day.month &&
           t.date.day == day.day) {
-        if (t.type == TransactionType.income)
+        if (t.type == TransactionType.income) {
           income += t.amount;
-        else
+        } else {
           expense += t.amount;
+        }
       }
     }
     return {'income': income, 'expense': expense};

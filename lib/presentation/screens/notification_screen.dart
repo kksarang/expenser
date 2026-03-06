@@ -6,10 +6,55 @@ import '../../core/constants/app_colors.dart';
 import '../../core/utils/responsive.dart';
 import '../../domain/entities/notification_entity.dart';
 import '../providers/notification_provider.dart';
-// import 'transaction_detail_screen.dart'; // Future integration for deep linking
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
+
+  Widget _buildPermissionBanner(BuildContext context, NotificationProvider provider) {
+    if (provider.hasPermission) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      color: Colors.orange.shade50,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange.shade800),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Notifications are currently disabled. You might miss important updates about your shared wallets.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.orange.shade900,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => provider.requestPermission(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange.shade800,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Enable Notifications'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,44 +94,55 @@ class NotificationScreen extends StatelessWidget {
       ),
       body: Consumer<NotificationProvider>(
         builder: (context, provider, child) {
-          if (provider.isLoading && provider.notifications.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (provider.notifications.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.notifications_off_outlined,
-                    size: 80,
-                    color: Colors.grey.withOpacity(0.5),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No notifications yet',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
+          return Column(
+            children: [
+              _buildPermissionBanner(context, provider),
+              Expanded(
+                child: _buildNotificationList(context, provider),
               ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            itemCount: provider.notifications.length,
-            itemBuilder: (context, index) {
-              final notification = provider.notifications[index];
-              return _NotificationCard(notification: notification);
-            },
+            ],
           );
         },
       ),
+    );
+  }
+
+  Widget _buildNotificationList(BuildContext context, NotificationProvider provider) {
+    if (provider.isLoading && provider.notifications.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (provider.notifications.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.notifications_off_outlined,
+              size: 80,
+              color: Colors.grey.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No notifications yet',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: provider.notifications.length,
+      itemBuilder: (context, index) {
+        final notification = provider.notifications[index];
+        return _NotificationCard(notification: notification);
+      },
     );
   }
 }
@@ -108,27 +164,27 @@ class _NotificationCard extends StatelessWidget {
       case NotificationType.expense:
         iconData = Icons.arrow_upward_rounded;
         iconColor = AppColors.expense;
-        iconBgColor = AppColors.expense.withOpacity(0.1);
+        iconBgColor = AppColors.expense.withValues(alpha: 0.1);
         break;
       case NotificationType.income:
         iconData = Icons.arrow_downward_rounded;
         iconColor = AppColors.income;
-        iconBgColor = AppColors.income.withOpacity(0.1);
+        iconBgColor = AppColors.income.withValues(alpha: 0.1);
         break;
       case NotificationType.appUpdate:
         iconData = Icons.system_update_rounded;
         iconColor = Colors.blue;
-        iconBgColor = Colors.blue.withOpacity(0.1);
+        iconBgColor = Colors.blue.withValues(alpha: 0.1);
         break;
       case NotificationType.alert:
         iconData = Icons.warning_rounded;
         iconColor = Colors.orange;
-        iconBgColor = Colors.orange.withOpacity(0.1);
+        iconBgColor = Colors.orange.withValues(alpha: 0.1);
         break;
       default: // system
         iconData = Icons.info_outline_rounded;
         iconColor = AppColors.primary;
-        iconBgColor = AppColors.primary.withOpacity(0.1);
+        iconBgColor = AppColors.primary.withValues(alpha: 0.1);
     }
 
     return Dismissible(
@@ -164,10 +220,10 @@ class _NotificationCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             border: notification.isRead
                 ? null
-                : Border.all(color: AppColors.primary.withOpacity(0.2)),
+                : Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),

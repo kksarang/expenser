@@ -72,7 +72,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
         id: widget.initialCategory?.id ?? const Uuid().v4(),
         name: _nameController.text.trim(),
         iconCodePoint: _selectedIconCode,
-        colorValue: _selectedColor.value,
+        colorValue: _selectedColor.toARGB32(),
         type: _selectedType,
         isCustom: true,
       );
@@ -184,7 +184,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
                 border: Border.all(color: Colors.grey.shade200),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -195,7 +195,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: _selectedColor.withOpacity(0.15),
+                      color: _selectedColor.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -264,13 +264,13 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
                   gradient: LinearGradient(
                     colors: [
                       AppColors.primary,
-                      AppColors.primary.withOpacity(0.8),
+                      AppColors.primary.withValues(alpha: 0.8),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -328,7 +328,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -351,7 +351,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
   }
 
   Widget _buildColorChip(Color color) {
-    final isSelected = _selectedColor.value == color.value;
+    final isSelected = _selectedColor.toARGB32() == color.toARGB32();
     return GestureDetector(
       onTap: () => setState(() => _selectedColor = color),
       child: Stack(
@@ -370,7 +370,7 @@ class _AddCategorySheetState extends State<AddCategorySheet> {
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: color.withOpacity(0.4),
+                        color: color.withValues(alpha: 0.4),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       ),

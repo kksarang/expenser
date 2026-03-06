@@ -31,7 +31,7 @@ class ExpensesScreen extends StatelessWidget {
                         color: AppColors.white,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
-                           BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+                           BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10),
                         ]
                       ),
                       child: const Icon(Icons.notifications_outlined, size: 20),
@@ -214,7 +214,7 @@ class _SummaryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: Colors.white),
@@ -222,7 +222,7 @@ class _SummaryCard extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             title,
-            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
           ),
           const SizedBox(height: 4),
           Text(
